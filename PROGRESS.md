@@ -1,11 +1,12 @@
 # PROGRESS
 
-**Current phase:** 3 (Today + Quick log) in progress.
+**Current phase:** 4 (Week + Money + legacy) next. Phase 3 done.
 **Last update:** 2026-11-17 IST
 **Mode:** offline build. `secrets.json` holds DUMMY values (owner's call, 17 Nov). Every live gate is replaced by a fake-server test; the live checks are listed under "Owner to verify".
 
 ## Toolchain
-- Flutter 3.47.9 stable (fvm default), Dart 3.13.7, DevTools 2.60.0
+- Flutter 3.50.0 stable (plain `flutter`, no fvm), Dart 3.14.0, DevTools 2.61.0 (was 3.47.9 via fvm; see DECISIONS 10–11)
+- 2026-11-17 resume check on the new machine: `secrets.json` copied from example (dummy), `pub get` ok, Material imports migrated to `material_ui`, analyze 0 issues, 56/56 tests green. Phase 3 step 1 (analyze the 4 new files) is therefore done.
 - Xcode 27.2, Android SDK 37.0.0 (some Android licences not accepted: run `flutter doctor --android-licenses` before the release APK)
 
 ## Phase 0: Recon ✅ (live read deferred)
@@ -25,22 +26,27 @@
 - Tests: Leitner, queue order, Study Bank + Start Here parsing, progress maths (16/day on 17 Nov), gate test (3 cards offline → reconnect → exactly 3 dev- rows), widget tests
 - Gate: green (56 tests) ✅ · live airplane-mode run → **owner**
 
-## Phase 3: Today + Quick log 🟡 IN PROGRESS (paused 17 Nov 19:56)
-Written, NOT yet analyzed or tested:
-- `app/lib/domain/derivations/sleep.dart` (sleep windows, bed → next wake ≤ 18 h, label = wake date, late = bed ≥ 02:00)
-- `app/lib/domain/derivations/daily_stats.dart` (DaySummary, nulls for missing; protein = meal with unit `g`)
-- `app/lib/domain/derivations/commute.dart` (bus legs; used by Bus mode, tested indirectly)
-- `app/lib/domain/quicklog/parser.dart` (regex grammar; combo split "1 cig + tea 45" → ₹25 + ₹20; unparsed → note)
+## Phase 3: Today + Quick log ✅
+- Domain: `derivations/sleep.dart`, `daily_stats.dart`, `commute.dart`, `quicklog/parser.dart` (analyzed, tested, 6 parser fixes: DECISIONS 12), `quicklog/build_events.dart` (time chips, "later than now → yesterday", Repeat-a-usual, undo-line text)
+- Today (`features/today/`): `TodayCubit` + `TodayScreen` + `today_widgets.dart`
+  - 6 tiles (cig/tea/water tap = +1, meal → Quick log by time of day, supplements checklist, breakfast protein); dashed when never logged; "—" when nothing today
+  - cig number turns warn above the budget; 6 s undo line ("Logged 1 cigarette · 18:02 · ₹25 · Undo"), else "Last: …"
+  - bus card Board → Arrived → Board home → Arrived → Done; Up-next (lime) from Start Here with countdown; sleep card (approx "est.", orange after 02:00); spend card (today + week, taps to Money)
+  - header "Tue 17 Nov · Day N" + sync dot; offline banner; pull-to-refresh; FAB and long-press → Quick log; refreshes Study tabs when older than 6 h (for Up next)
+- Quick log (`features/quicklog/`): live preview of every entry, split-payment footer, When chips (Now · HH:mm / 15 min ago / ~ Approx / Pick time), Repeat-a-usual chips (top 5 labels, 14 days) add to the preview, "Log N entries". The sheet returns events; Today writes them (one undo for the batch).
+- `DEV_IDS` build flag (`--dart-define=DEV_IDS=true`): every new id gets `dev-` for live checks (DECISIONS 19)
+- Tests (+109 → 165 total): parser 61 cases, derivations 16, build_events/usuals 17, Today cubit 10 incl. the gate, Today widgets 3
+- Gate: green ✅ fake-server gate test: 5 mixed entries offline → flush fails, outbox 5 → reconnect → one POST, 5 `dev-` rows, second flush + refresh add nothing · live airplane-mode run → **owner**
 
-Next, in order:
-1. Run `dart format . && flutter analyze` in `app/`; fix issues in the 4 files above.
-2. Write `app/test/domain/parser_test.dart` (≥ 30 cases: habits, combos, water, meals/spend, weight/sleep/wake, bus "office reached 10:40", "tea at 16:30", fallbacks "After lunch" / "~12:30 (AM/PM unconfirmed)" → note) + sleep/commute/daily_stats tests.
-3. TodayCubit + TodayScreen (replace placeholder in `features/today/`): tiles, 6 s undo, cig warn > budget, bus Board→Arrived→Done card, Up-next (lime), sleep + spend cards, sync dot, FAB → Quick log, long-press tile → Quick log.
-4. QuickLog sheet (`features/quicklog/`): preview, time chips (Now / 15 min ago / ~Approx / pick), "Repeat a usual" = top 5 labels in 14 days, explicit time later than now → yesterday.
-5. Tests: tile → outbox, undo before/after sync, two bus legs, gate (5 mixed entries offline → reconnect → 5 rows once, dev- ids, type note).
-Then Phase 4 (Week + Money + legacy adapter), 5 (polish, release APK, README), 6 (home widget, 21:00 nudge).
+Next, in order (Phase 4: Week + Money + legacy adapter):
+1. Read `Trends.dc.html` and `Money.dc.html`; `derivations/burn.dart` (daily burn excl. bills/one_off, split delivery / other / one-offs, pay later = source lazypay) + `derivations/weight.dart` (last per day, 7-day avg of days with a value, axis ≥ 4 kg centred on avg) + "Not logged" counts; tests.
+2. `legacy/legacy_cell.dart` (first number, range midpoint, `~`/range → approx, N/A/text → null + raw; never throws) + `legacy/legacy_adapter.dart` (Daily Summary / Timeline / Spending → read-only synthetic events, source `legacy`; surface 16 Nov data bugs). No real fixture: build fixtures in Dart from PRD §6.4 examples; flag column-name assumptions for the owner's live read.
+3. Week screen (CustomPainter: cig bars lime ≤ budget / grey above, sleep rows 21:00→11:00, weight dots + avg line; gaps for missing days; Not-logged card) + WeekCubit.
+4. Money screen (burn/day, stacked bar + legend, pay later, today's entries) + MoneyCubit.
+5. Tests: burn excludes bills/one_off, weight axis, gaps never 0, legacy cell cases, widget smoke for both tabs.
+Then Phase 5 (polish, simulator run, release APK, README), 6 (home widget, 21:00 nudge).
 
-Known gotcha: widget tests must settle the fake-async zone before closing drift (see `test/support/app_harness.dart` `dispose`), or the run hangs.
+Known gotcha: widget tests must settle the fake-async zone before closing drift (see `test/support/app_harness.dart` `dispose`), or the run hangs. Keep widget tests in their own files (no shared drift setUp/tearDown with plain tests).
 
 ## Dev rows written to the live sheet
 None (no live access).
@@ -48,4 +54,5 @@ None (no live access).
 ## Owner to verify (live)
 1. Phase 0: GET `tabs=Start Here,Study Bank,Events`; compare headers with DECISIONS.md assumptions.
 2. Phase 1: Settings → Test connection shows OK; one `dev-phase1-<ts>` note lands.
-3. Phase 2: Bus mode 3 cards in airplane mode → reconnect → 3 study rows (use a dev build; see README).
+3. Phase 2: Bus mode 3 cards in airplane mode → reconnect → 3 study rows. Use a dev build: `flutter run --dart-define-from-file=../secrets.json --dart-define=DEV_IDS=true`.
+4. Phase 3: same dev build, airplane mode → Quick log 5 `note` entries (any text the parser won't read, e.g. "dev check 1" … "dev check 5") → reconnect → exactly 5 `dev-` note rows appear once in Events. Delete them afterwards; the app drops them from cache on the next refresh.

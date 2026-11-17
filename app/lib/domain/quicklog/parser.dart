@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../../core/clock.dart';
 import '../../core/formatters.dart';
 import '../derivations/daily_stats.dart';
+import '../event.dart';
 import '../event_type.dart';
 
 /// One event the quick-log text turned into, before date/time are applied.
@@ -34,6 +35,23 @@ class ParsedEntry extends Equatable {
   final bool approx;
   final String? note;
   final String source;
+
+  /// The entry an existing event would have come from (for "Repeat a
+  /// usual" and for describing logged events).
+  factory ParsedEntry.fromEvent(Event e, {bool keepTime = false}) =>
+      ParsedEntry(
+        type: e.type,
+        raw: e.label ?? e.note ?? e.type.wire,
+        qty: e.qty,
+        unit: e.unit,
+        label: e.label,
+        amount: e.amountInr,
+        category: e.category,
+        time: keepTime ? e.time : null,
+        approx: keepTime && e.approx,
+        note: e.note,
+        source: e.source == 'lazypay' ? 'lazypay' : 'app',
+      );
 
   ParsedEntry withAmount(double? a) => ParsedEntry(
     type: type,
@@ -69,8 +87,8 @@ class ParsedEntry extends Equatable {
       EventType.energy => 'Energy ${trimNum(qty)}/10',
       EventType.mood => 'Mood ${trimNum(qty)}/10',
       EventType.supplement => 'Supplement · ${label ?? ''}',
-      EventType.meal || EventType.snack when unit == 'g' =>
-        '$proteinLabel ${trimNum(qty)} g',
+      EventType.meal ||
+      EventType.snack when unit == 'g' => '$proteinLabel ${trimNum(qty)} g',
       EventType.meal || EventType.snack => label ?? 'Meal',
       EventType.spend => label ?? 'Spend',
       EventType.note => 'Note: "${note ?? raw}"',
@@ -113,15 +131,23 @@ class ParseResult {
 const _time = r'(\d{1,2})(?:[:.](\d{2}))\s*(am|pm)?|(\d{1,2})\s*(am|pm)';
 const _amt = r'(?:₹|rs\.?\s*)?(\d+(?:\.\d+)?)';
 
+/// Sleep and wake also accept a bare hour ("woke 6", "slept 23").
+const _timeOrHour = '$_time|(\\d{1,2})';
+
 final _approxRe = RegExp(r'~|\b(?:approx|approximately|around|about|abt)\b');
 final _lazyRe = RegExp(r'\b(?:lazy\s?pay|lp)\b');
-final _atTimeRe = RegExp('(?:^|\\s)(?:at|@)\\s*(?:$_time)\\s*\$');
+
+/// "tea at 16:30", "cig @ 4pm", or a bare trailing "16:30" (colon only, so
+/// "zomato 12.50" stays an amount).
+final _atTimeRe = RegExp(
+  '(?:^|\\s)(?:(?:at|@)\\s*(?:$_time)|(\\d{1,2}):(\\d{2})\\s*(am|pm)?)\\s*\$',
+);
 
 final _sleepRe = RegExp(
-  '^(?:slept|sleep|bed|asleep|went to bed|in bed)\\s*(?:at\\s*)?(?:$_time)\$',
+  '^(?:slept|sleep|bed|asleep|went to bed|in bed)\\s*(?:at\\s*)?(?:$_timeOrHour)\$',
 );
 final _wakeRe = RegExp(
-  '^(?:woke(?: up)?|wake(?: up)?|up|awake)\\s*(?:at\\s*)?(?:$_time)\$',
+  '^(?:woke(?: up)?|wake(?: up)?|up|awake)\\s*(?:at\\s*)?(?:$_timeOrHour)\$',
 );
 final _boardRe = RegExp(
   '^(?:board(?:ed)?|on (?:the )?bus|got on(?: the)? bus|bus)'
@@ -154,7 +180,12 @@ final _cigRe = RegExp(
 final _drinkRe = RegExp(
   '^(\\d+)?\\s*(teas?|chai|coffees?)(?:\\s*[x×]\\s*(\\d+))?(?:\\s+$_amt)?\$',
 );
-final _mealRe = RegExp(r'^(breakfast|bkfst|lunch|dinner|snacks?)\b\s*(.*)$');
+
+/// "lunch 130", "breakfast poha 40", "canteen lunch 130". Text before the
+/// meal word is only accepted with an amount, so "after lunch" stays a note.
+final _mealRe = RegExp(
+  r'^(?:(.+?)\s+)?(breakfast|bkfst|lunch|dinner|snacks?)\b\s*(.*)$',
+);
 final _suppRe = RegExp(r'^(?:supp(?:lement)?s?|took)\s+(.+)$');
 final _amountOnlyRe = RegExp('^$_amt\$');
 final _textAmountRe = RegExp('^(.*?[a-z].*?)\\s+$_amt\$');
@@ -180,7 +211,13 @@ const _categoryWords = <String, List<String>>{
   ],
   SpendCategory.grooming: ['haircut', 'salon', 'barber', 'shave'],
   SpendCategory.bills: [
-    'bill', 'electricity', 'recharge', 'rent', 'wifi', 'internet', 'emi',
+    'bill',
+    'electricity',
+    'recharge',
+    'rent',
+    'wifi',
+    'internet',
+    'emi',
   ],
   SpendCategory.tobacco: ['lighter', 'pack'],
   SpendCategory.tea: ['tea', 'chai'],
@@ -197,12 +234,13 @@ String categoryFor(String text) {
 }
 
 String? _timeFrom(Match m, int first) {
-  // Groups: h, mm, ampm | h, ampm
+  // Groups: h, mm, ampm | h, ampm | [h, mm, ampm or bare h, when present]
   final h1 = m.group(first);
   final mm = m.group(first + 1);
   final ap1 = m.group(first + 2);
   final h2 = m.group(first + 3);
   final ap2 = m.group(first + 4);
+  final extra = m.groupCount >= first + 5 ? m.group(first + 5) : null;
   int h;
   int min;
   String? ap;
@@ -214,6 +252,11 @@ String? _timeFrom(Match m, int first) {
     h = int.parse(h2);
     min = 0;
     ap = ap2;
+  } else if (extra != null) {
+    h = int.parse(extra);
+    final emm = m.groupCount >= first + 6 ? m.group(first + 6) : null;
+    min = emm == null ? 0 : int.parse(emm);
+    ap = m.groupCount >= first + 7 ? m.group(first + 7) : null;
   } else {
     return null;
   }
@@ -226,7 +269,8 @@ String? _timeFrom(Match m, int first) {
 
 String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-double? _num(String? s) => s == null ? null : double.tryParse(s.replaceAll(',', ''));
+double? _num(String? s) =>
+    s == null ? null : double.tryParse(s.replaceAll(',', ''));
 
 /// Parses free text like "1 cig + tea 45" into events (PRD §4).
 /// Never throws: anything it can't read becomes a `note`.
@@ -235,38 +279,60 @@ ParseResult parseQuickLog(
   required double cigPrice,
   required double teaPrice,
 }) {
-  final segments = input
-      .split(RegExp(r'\s*[+,;]\s*|\s+&\s+|\n'))
-      .map((s) => s.trim())
-      .where((s) => s.isNotEmpty)
-      .toList();
+  // "," ";" and new lines separate entries; "+" and "&" join items paid
+  // together. A comma inside a number ("8,000 steps") does not split.
+  List<String> parts(String s, RegExp on) =>
+      s.split(on).map((x) => x.trim()).where((x) => x.isNotEmpty).toList();
+  final groups = parts(input, RegExp(r'\s*;\s*|\s*,(?!\d{3}(?:\D|$))\s*|\n'));
   final entries = <ParsedEntry>[];
-  final explicitAmount = <bool>[];
-  for (final seg in segments) {
-    final r = _parseSegment(seg, cigPrice: cigPrice, teaPrice: teaPrice);
-    entries.add(r.$1);
-    explicitAmount.add(r.$2);
+  final splits = <double>[];
+  for (final g in groups) {
+    final items = [
+      for (final seg in parts(g, RegExp(r'\s*\+\s*|\s+&\s+')))
+        _parseSegment(seg, cigPrice: cigPrice, teaPrice: teaPrice),
+    ];
+    final split = _splitCombo(items);
+    if (split != null) splits.add(split);
+    entries.addAll(items.map((r) => r.$1));
   }
-
-  // "1 cig + tea 45": one trailing amount on a combo of habit items is the
-  // total for the whole payment. Price the others at their defaults and give
-  // the last item the remainder.
-  double? split;
-  if (entries.length >= 2 &&
-      explicitAmount.last &&
-      explicitAmount.take(entries.length - 1).every((x) => !x) &&
-      entries.every(_isHabit)) {
-    final total = entries.last.amount!;
-    final others = entries
-        .take(entries.length - 1)
-        .fold<double>(0, (a, e) => a + (e.amount ?? 0));
-    if (others <= total) {
-      entries[entries.length - 1] = entries.last.withAmount(total - others);
-      split = total;
-    }
-  }
-  return ParseResult(entries, splitTotal: split);
+  // The "one payment, split for counts" footer only makes sense when the
+  // whole input was that one payment.
+  return ParseResult(
+    entries,
+    splitTotal: groups.length == 1 && splits.length == 1 ? splits.single : null,
+  );
 }
+
+/// "1 cig + tea 45": one trailing amount on a combo of habit items is the
+/// total for the whole payment. Price the others at their defaults and give
+/// the last item the remainder. Edits [items] in place; returns the total.
+double? _splitCombo(List<(ParsedEntry, bool)> items) {
+  if (items.length < 2) return null;
+  final explicit = items.map((r) => r.$2).toList();
+  final entries = items.map((r) => r.$1).toList();
+  if (!explicit.last ||
+      explicit.take(items.length - 1).any((x) => x) ||
+      !entries.every(_isHabit)) {
+    return null;
+  }
+  final total = entries.last.amount!;
+  final others = entries
+      .take(entries.length - 1)
+      .fold<double>(0, (a, e) => a + (e.amount ?? 0));
+  if (others > total) return null;
+  items[items.length - 1] = (entries.last.withAmount(total - others), true);
+  return total;
+}
+
+/// "tea 2" / "cig 3": a small trailing number with no ₹/rs is a count,
+/// not a price (no tea or cigarette costs ₹5 or less).
+bool _looksLikeCount(Match m, double? typed, {String? hasCount}) =>
+    typed != null &&
+    hasCount == null &&
+    typed >= 1 &&
+    typed <= 5 &&
+    typed == typed.roundToDouble() &&
+    !RegExp(r'(?:₹|\brs\.?)\s*\d+(?:\.\d+)?$').hasMatch(m.group(0)!);
 
 bool _isHabit(ParsedEntry e) =>
     e.type == EventType.cigarette ||
@@ -327,8 +393,11 @@ bool _isHabit(ParsedEntry e) =>
   String? at;
   final atM = _atTimeRe.firstMatch(s);
   if (atM != null) {
-    at = _timeFrom(atM, 1);
-    s = s.substring(0, atM.start).trim();
+    final t = _timeFrom(atM, 1);
+    if (t != null) {
+      at = t;
+      s = s.substring(0, atM.start).trim();
+    }
   }
 
   if ((m = _weightRe.firstMatch(s)) != null) {
@@ -336,10 +405,26 @@ bool _isHabit(ParsedEntry e) =>
     if (kg != null && kg >= 20 && kg <= 300) {
       return (e(EventType.weight, qty: kg, unit: 'kg', time: at), false);
     }
+    // "weight 999": clearly a weight, clearly wrong. Keep it as a note.
+    return (
+      ParsedEntry(
+        type: EventType.note,
+        raw: original,
+        note: original.trim(),
+        approx: approx,
+        source: source,
+      ),
+      false,
+    );
   }
   if ((m = _stepsRe.firstMatch(s)) != null) {
     return (
-      e(EventType.steps, qty: _num(m!.group(1) ?? m.group(2)), unit: 'steps', time: at),
+      e(
+        EventType.steps,
+        qty: _num(m!.group(1) ?? m.group(2)),
+        unit: 'steps',
+        time: at,
+      ),
       false,
     );
   }
@@ -347,7 +432,11 @@ bool _isHabit(ParsedEntry e) =>
     final v = _num(m!.group(2));
     if (v != null && v >= 1 && v <= 10) {
       return (
-        e(m.group(1) == 'energy' ? EventType.energy : EventType.mood, qty: v, time: at),
+        e(
+          m.group(1) == 'energy' ? EventType.energy : EventType.mood,
+          qty: v,
+          time: at,
+        ),
         false,
       );
     }
@@ -371,7 +460,13 @@ bool _isHabit(ParsedEntry e) =>
   }
   if ((m = _proteinRe.firstMatch(s)) != null) {
     return (
-      e(EventType.meal, qty: _num(m!.group(1) ?? m.group(2)), unit: 'g', label: proteinLabel, time: at),
+      e(
+        EventType.meal,
+        qty: _num(m!.group(1) ?? m.group(2)),
+        unit: 'g',
+        label: proteinLabel,
+        time: at,
+      ),
       false,
     );
   }
@@ -385,13 +480,23 @@ bool _isHabit(ParsedEntry e) =>
       _ => _cap(kind),
     };
     return (
-      e(EventType.exercise, qty: _num(m.group(2)), unit: 'min', label: label, time: at),
+      e(
+        EventType.exercise,
+        qty: _num(m.group(2)),
+        unit: 'min',
+        label: label,
+        time: at,
+      ),
       false,
     );
   }
   if ((m = _cigRe.firstMatch(s)) != null) {
-    final n = _num(m!.group(1) ?? m.group(2)) ?? 1;
-    final typed = _num(m.group(3));
+    var n = _num(m!.group(1) ?? m.group(2)) ?? 1;
+    var typed = _num(m.group(3));
+    if (_looksLikeCount(m, typed, hasCount: m.group(1) ?? m.group(2))) {
+      n = typed!;
+      typed = null;
+    }
     return (
       e(
         EventType.cigarette,
@@ -406,8 +511,12 @@ bool _isHabit(ParsedEntry e) =>
   }
   if ((m = _drinkRe.firstMatch(s)) != null) {
     final coffee = m!.group(2)!.startsWith('coffee');
-    final n = _num(m.group(1) ?? m.group(3)) ?? 1;
-    final typed = _num(m.group(4));
+    var n = _num(m.group(1) ?? m.group(3)) ?? 1;
+    var typed = _num(m.group(4));
+    if (_looksLikeCount(m, typed, hasCount: m.group(1) ?? m.group(3))) {
+      n = typed!;
+      typed = null;
+    }
     return (
       e(
         coffee ? EventType.coffee : EventType.tea,
@@ -421,35 +530,48 @@ bool _isHabit(ParsedEntry e) =>
     );
   }
   if ((m = _mealRe.firstMatch(s)) != null) {
-    var kind = m!.group(1)!;
+    final prefix = m!.group(1)?.trim() ?? '';
+    final word = m.group(2)!;
+    var kind = word;
     if (kind == 'bkfst') kind = 'breakfast';
     if (kind == 'snacks') kind = 'snack';
-    var rest = m.group(2)!.trim();
+    var rest = m.group(3)!.trim();
     double? amount;
     final t = _trailingAmtRe.firstMatch(rest);
     if (t != null) {
       amount = _num(t.group(2));
       rest = t.group(1)!.trim();
     }
-    final label = rest.isEmpty ? _cap(kind) : '${_cap(rest)} $kind';
-    return (
-      e(
-        kind == 'snack' ? EventType.snack : EventType.meal,
-        label: label,
-        amount: amount,
-        category: amount == null ? null : categoryFor(rest.isEmpty ? kind : rest),
-        note: kind,
-        time: at,
-      ),
-      amount != null,
-    );
+    if (prefix.isEmpty || amount != null) {
+      final text = [prefix, kind, rest].where((x) => x.isNotEmpty).join(' ');
+      return (
+        e(
+          kind == 'snack' ? EventType.snack : EventType.meal,
+          label: _cap(text),
+          amount: amount,
+          category: amount == null ? null : categoryFor(text),
+          note: kind,
+          time: at,
+        ),
+        amount != null,
+      );
+    }
   }
   if ((m = _suppRe.firstMatch(s)) != null) {
-    return (e(EventType.supplement, label: _cap(m!.group(1)!.trim()), time: at), false);
+    return (
+      e(EventType.supplement, label: _cap(m!.group(1)!.trim()), time: at),
+      false,
+    );
   }
   if ((m = _amountOnlyRe.firstMatch(s)) != null) {
     return (
-      e(EventType.spend, label: 'Spend', amount: _num(m!.group(1)), category: SpendCategory.other, time: at),
+      e(
+        EventType.spend,
+        label: 'Spend',
+        amount: _num(m!.group(1)),
+        category: SpendCategory.other,
+        time: at,
+      ),
       true,
     );
   }
@@ -470,7 +592,13 @@ bool _isHabit(ParsedEntry e) =>
     );
   }
   return (
-    ParsedEntry(type: EventType.note, raw: original, note: original.trim(), approx: approx, source: source),
+    ParsedEntry(
+      type: EventType.note,
+      raw: original,
+      note: original.trim(),
+      approx: approx,
+      source: source,
+    ),
     false,
   );
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Spacing and radius tokens from design/DESIGN.md.
 @immutable

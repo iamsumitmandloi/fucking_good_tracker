@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../theme/app_theme.dart';
 import 'app_icon.dart';
@@ -13,6 +13,7 @@ class AppCard extends StatelessWidget {
     this.color,
     this.borderColor,
     this.onTap,
+    this.onLongPress,
     this.dashed = false,
   });
 
@@ -22,6 +23,7 @@ class AppCard extends StatelessWidget {
   final Color? color;
   final Color? borderColor;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final bool dashed;
 
   @override
@@ -32,8 +34,13 @@ class AppCard extends StatelessWidget {
       padding: padding ?? EdgeInsets.all(context.dims.cardPad),
       child: child,
     );
-    if (onTap != null) {
-      content = InkWell(onTap: onTap, borderRadius: r, child: content);
+    if (onTap != null || onLongPress != null) {
+      content = InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        borderRadius: r,
+        child: content,
+      );
     }
     final decorated = Material(
       color: color ?? c.surface,

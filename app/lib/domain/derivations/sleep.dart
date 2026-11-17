@@ -60,7 +60,9 @@ List<SleepWindow> sleepWindows(Iterable<Event> effective) {
                 _abs(e.date, e.time ?? '') != null,
           )
           .toList()
-        ..sort((a, b) => _abs(a.date, a.time!)!.compareTo(_abs(b.date, b.time!)!));
+        ..sort(
+          (a, b) => _abs(a.date, a.time!)!.compareTo(_abs(b.date, b.time!)!),
+        );
   final out = <SleepWindow>[];
   for (var i = 0; i < timed.length; i++) {
     final s = timed[i];
@@ -81,7 +83,8 @@ List<SleepWindow> sleepWindows(Iterable<Event> effective) {
       SleepWindow(
         bedDate: s.date,
         bed: s.time!,
-        wakeDate: wake?.date ?? (bedMin >= 12 * 60 ? addDays(s.date, 1) : s.date),
+        wakeDate:
+            wake?.date ?? (bedMin >= 12 * 60 ? addDays(s.date, 1) : s.date),
         wake: wake?.time,
         approx: s.approx || (wake?.approx ?? false),
       ),

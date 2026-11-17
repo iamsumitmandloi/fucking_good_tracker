@@ -72,7 +72,8 @@ double? _sum(Iterable<Event> es, double Function(Event) f) =>
 
 /// [effective] must already exclude dev rows and voids.
 DaySummary summarize(Iterable<Event> effective, String date) {
-  final day = effective.where((e) => e.date == date).toList()..sort(compareEvents);
+  final day = effective.where((e) => e.date == date).toList()
+    ..sort(compareEvents);
   Iterable<Event> of(EventType t) => day.where((e) => e.type == t);
   final paid = day.where((e) => e.amountInr != null);
   final weights = of(EventType.weight).where((e) => e.qty != null).toList();
@@ -89,7 +90,9 @@ DaySummary summarize(Iterable<Event> effective, String date) {
     energy: energy.isEmpty ? null : energy.last.qty,
     meals: [
       for (final e in day)
-        if ((e.type == EventType.meal || e.type == EventType.snack) && !isProtein(e)) e,
+        if ((e.type == EventType.meal || e.type == EventType.snack) &&
+            !isProtein(e))
+          e,
     ],
     supplements: {
       for (final e in of(EventType.supplement))
