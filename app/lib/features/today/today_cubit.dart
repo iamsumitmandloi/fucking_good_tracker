@@ -8,6 +8,7 @@ import '../../core/ids.dart';
 import '../../core/streams.dart';
 import '../../data/local/db.dart';
 import '../../data/repo/events_repository.dart';
+import '../../data/repo/legacy_repository.dart';
 import '../../data/repo/settings_repository.dart';
 import '../../data/repo/study_repository.dart';
 import '../../domain/derivations/commute.dart';
@@ -17,6 +18,7 @@ import '../../domain/effective_events.dart';
 import '../../domain/event.dart';
 import '../../domain/event_type.dart';
 import '../../domain/focus.dart';
+import '../../domain/legacy/legacy_adapter.dart';
 import '../../domain/quicklog/build_events.dart';
 import '../../domain/start_here.dart';
 import '../../domain/study_question.dart';
@@ -155,6 +157,7 @@ class TodayCubit extends Cubit<TodayState> {
     required this._study,
     required this._clock,
     this._db,
+    this._legacy,
     this.idFactory = newEventId,
     this.undoFor = const Duration(seconds: 6),
   }) : super(const TodayState()) {
@@ -164,11 +167,20 @@ class TodayCubit extends Cubit<TodayState> {
           _settings.watch(),
           _study.watchBank(),
           _study.watchStartHere(),
+          _legacy?.watchRows() ??
+              Stream.value(const <String, List<Map<String, dynamic>>>{}),
         ]).listen((v) {
           _all = v[0]! as List<Event>;
           _settingsValue = v[1]! as AppSettings;
           _bank = v[2]! as List<StudyQuestion>;
           _startHere = v[3]! as StartHere;
+          // Legacy history only moves "Day N" back to the first logged day.
+          _legacyFirst = firstDate(
+            adaptLegacy(
+              v[4]! as Map<String, List<Map<String, dynamic>>>,
+              year: _clock.nowIst().year,
+            ).events,
+          );
           _recompute();
         });
     // Date rollover while the app stays open.
@@ -183,6 +195,7 @@ class TodayCubit extends Cubit<TodayState> {
   final StudyRepository _study;
   final Clock _clock;
   final AppDatabase? _db;
+  final LegacyRepository? _legacy;
   final String Function() idFactory;
   final Duration undoFor;
 
@@ -194,12 +207,17 @@ class TodayCubit extends Cubit<TodayState> {
   AppSettings _settingsValue = const AppSettings();
   List<StudyQuestion> _bank = const [];
   StartHere _startHere = const StartHere({});
+  String? _legacyFirst;
 
   void _recompute() {
     if (isClosed) return;
     final today = _clock.todayIst();
     final eff = effectiveEvents(_all);
-    final first = firstDate(eff);
+    final first = firstDate([
+      ...eff.take(1),
+      if (_legacyFirst != null)
+        Event(id: '', date: _legacyFirst!, type: EventType.note),
+    ]);
     final weekFrom = addDays(today, -6);
     final week = eff.where(
       (e) =>

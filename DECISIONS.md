@@ -25,6 +25,15 @@ Format: date · what · why · evidence.
 19. **`DEV_IDS` build flag.** `--dart-define=DEV_IDS=true` makes `newEventId()` return `dev-<uuid>`, so the owner's live phase checks write only rows that stats ignore (CLAUDE.md rule 3). Normal builds are unchanged.
 20. **Today refreshes Study Bank + Start Here when the cache is older than 6 h** (same rule as the Study tab), so the Up-next card fills on first launch without visiting Study.
 
+21. **Legacy columns are matched by header pattern, not exact name** (no live read yet). Lower-cased letters/digits; first match wins. Daily Summary: date = `date`/`day`; cigarettes `cig`|`smok`; sleep hours `sleep`; weight `weight`|`wt`|`kg`; steps `step`; water `water` (≤ 10 = litres); energy `energy`; commute `commute`|`bus`|`travel`. Spending: date; amount `amount`|`amt`|`inr`|`cost`|`price`|`spent`; time; category `category`|`cat`|`type`|`bucket`; item `item`|`what`|`description`|`details`|`merchant`|`note`; method `method`|`paid`|`via`|`mode`|`source`|`payment` (contains "lazy" → source lazypay). Timeline: date, time, text `entry`|`event`|`what`|`activity`|`log`|`note`|`text`. Dates accept ISO, d/M/yyyy, "16 Nov 2026", "Mon 16 Nov". Unknown shapes are skipped, never thrown. To be checked against the owner's live read.
+22. **Each legacy tab feeds one thing, so nothing is counted twice.** Daily Summary → cigarettes, weight, steps, water, energy (synthetic events, no money) and sleep hours for nights without bed/wake times. Spending → spend events (category from the Category column, else keyword guess). Timeline → only `sleep`/`wake` phrases via the Quick-log parser (a stated time later than the row's time = the day before). The Events tab wins per (date, metric); legacy spend is used only on days with no money in Events. Legacy events have `legacy-` ids, are never written to the outbox, and never feed Today's tiles.
+23. **Data bugs are flagged, not fixed** (PRD §6.4). A commute number in another column's text that disagrees with the Commute column, and a steps number in another column when the Steps column is empty, show in a "Sheet data to check" card on Week. Stats use only the column values.
+24. **Week and Money cover the 7 days ending today** (rolling, "Wed 11 – Tue 17 Nov" in the design), not a calendar week.
+25. **Not-logged card** adds Weight to the design's Water / Bkfst protein / Energy / Steps rows; Study sessions shows a count. Orange when 0.
+26. **Money copy.** The middle legend keeps the design's "Canteen, tea, singles, street food". "Still owed" under Pay later is dropped (no repayment data); it reads "N charges this week." Smoking est. = this week's cigarettes × price × 30 / 7.
+27. **Charts are plain widgets plus one CustomPainter** (weight). fl_chart was optional in the PRD and is not added.
+28. **Today's "Day N" counts from the first date in Events or the legacy tabs** (DECISIONS 7 expects 11 Nov = Day 1, which lives in the legacy tabs).
+
 ## Live API headers (pending)
 
 Blocked: `secrets.json` not present yet. Will record actual headers of `Start Here`, `Study Bank`, `Events` (and the legacy tabs) after the first live GET.

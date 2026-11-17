@@ -30,6 +30,7 @@ class TodayScreen extends StatelessWidget {
         study: c.read(),
         clock: c.read(),
         db: c.read<AppDeps>().db,
+        legacy: c.read(),
         idFactory: idFactory,
       ),
       child: const _TodayView(),

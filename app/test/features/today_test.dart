@@ -5,6 +5,7 @@ import 'package:starting_again/core/clock.dart';
 import 'package:starting_again/core/ids.dart';
 import 'package:starting_again/data/local/db.dart';
 import 'package:starting_again/data/repo/events_repository.dart';
+import 'package:starting_again/data/repo/legacy_repository.dart';
 import 'package:starting_again/data/repo/settings_repository.dart';
 import 'package:starting_again/data/repo/study_repository.dart';
 import 'package:starting_again/data/sync/sync_service.dart';
@@ -229,6 +230,28 @@ void main() {
       expect(s.weekSpend, 298);
       expect(s.daysLeft, 13);
       expect(s.lastEvent!.id, 'd');
+    });
+
+    test('Day N counts from the first legacy day too', () async {
+      final legacy = LegacyRepository(db: db, api: server.api(), clock: clock);
+      await legacy.applyTabs({
+        'Daily Summary': [
+          {'_row': 2, 'Date': '11 Nov 2026', 'Cigarettes': '13'},
+        ],
+      });
+      await events.mergeServerRows([
+        row('a', '2026-11-17', '10:00', 'tea', amount: '20'),
+      ]);
+      cubit = TodayCubit(
+        events: events,
+        settings: settings,
+        study: study,
+        clock: clock,
+        legacy: legacy,
+      );
+      final s = await until(cubit, (s) => s.loaded);
+      expect(s.dayN, 7);
+      expect(s.summary.cigs, isNull); // legacy never feeds Today's tiles
     });
 
     test('no data at all: everything is null, not 0', () async {
