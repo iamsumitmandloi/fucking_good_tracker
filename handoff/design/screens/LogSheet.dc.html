@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quick log</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8F169}a:hover{color:#E2FFA6}
+button,input{font:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0E1012; color: #EDEEF0; font-family: Inter, system-ui, sans-serif; position: relative; overflow: hidden">
+
+<div aria-hidden="true" style="padding: 28px 18px; display: flex; flex-direction: column; gap: 12px; opacity: 0.35">
+<div style="font-size: 13px; color: #A3AAB4">Tue 17 Nov · Day 7</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700">Today</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<div style="height: 104px; border-radius: 18px; background: #171A1E"></div>
+<div style="height: 104px; border-radius: 18px; background: #171A1E"></div>
+<div style="height: 104px; border-radius: 18px; background: #171A1E"></div>
+</div>
+</div>
+<div aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; background: rgba(5,6,7,0.55)"></div>
+
+<div style="position: absolute; left: 0; bottom: 0; width: 390px; height: 640px; box-sizing: border-box; background: #171A1E; border-radius: 28px 28px 0 0; border-top: 1px solid #2A2F36; padding: 10px 18px 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="width: 40px; height: 5px; border-radius: 3px; background: #3A414A; align-self: center"></div>
+
+<div style="display: flex; justify-content: space-between; align-items: center">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700">Log anything</h2>
+<button aria-label="Close" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #1F2329; color: #A3AAB4; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="q" style="font-size: 12px; color: #A3AAB4">Type it like you'd text it</label>
+<input id="q" value="1 cig + tea 45" style="height: 52px; border-radius: 14px; border: 1.5px solid #C8F169; background: #0E1012; color: #EDEEF0; padding: 0 14px; font-size: 17px; outline: none">
+</div>
+
+<div style="background: #0E1012; border: 1px solid #2A2F36; border-radius: 16px; padding: 4px 14px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: center; height: 44px; border-bottom: 1px solid #22262C">
+<span style="font-size: 14px">Cigarette × 1</span><span style="font-size: 14px; color: #A3AAB4">₹25</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center; height: 44px; border-bottom: 1px solid #22262C">
+<span style="font-size: 14px">Tea × 1</span><span style="font-size: 14px; color: #A3AAB4">₹20</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center; height: 40px">
+<span style="font-size: 12px; color: #A3AAB4">One payment, split for counts</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600">₹45</span></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; color: #A3AAB4">When</div>
+<div style="display: flex; gap: 8px">
+<button style="height: 40px; padding: 0 14px; border-radius: 20px; border: none; background: #C8F169; color: #0E1012; font-size: 14px; font-weight: 600">Now · 18:02</button>
+<button style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #3A414A; background: transparent; color: #EDEEF0; font-size: 14px">15 min ago</button>
+<button style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #3A414A; background: transparent; color: #EDEEF0; font-size: 14px">~ Approx</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; color: #A3AAB4">Repeat a usual</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button style="height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #2A2F36; background: #1F2329; color: #EDEEF0; font-size: 13px">Canteen lunch ₹130</button>
+<button style="height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #2A2F36; background: #1F2329; color: #EDEEF0; font-size: 13px">Pani puri ₹30</button>
+<button style="height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #2A2F36; background: #1F2329; color: #EDEEF0; font-size: 13px">Whey 2 scoops</button>
+<button style="height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #2A2F36; background: #1F2329; color: #EDEEF0; font-size: 13px">Lahori Jeera ₹10</button>
+<button style="height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #2A2F36; background: #1F2329; color: #EDEEF0; font-size: 13px">Weight</button>
+</div>
+</div>
+
+<div style="flex-grow: 1"></div>
+<div style="font-size: 12px; color: #A3AAB4; display: flex; align-items: center; gap: 6px">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12a10 10 0 1 0 20 0 10 10 0 1 0-20 0M12 7v5l3 2"></path></svg>
+Saved offline · syncs to the sheet when the bus gets signal</div>
+<button style="height: 54px; border-radius: 16px; border: none; background: #C8F169; color: #0E1012; font-size: 16px; font-weight: 700">Log 2 entries</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

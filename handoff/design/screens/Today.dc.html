@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8F169}a:hover{color:#E2FFA6}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0E1012; color: #EDEEF0; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex-grow: 1; padding: 20px 18px 0; display: flex; flex-direction: column; gap: 12px">
+
+<div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 13px; color: #A3AAB4; letter-spacing: 0.02em">Tue 17 Nov · Day 7</div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Today</h1>
+</div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #A3AAB4; padding-bottom: 6px">
+<span style="width: 7px; height: 7px; border-radius: 4px; background: #C8F169"></span>Synced 17:58</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+
+<button onClick="{{addCig}}" aria-label="Log one cigarette" style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 12px; height: 104px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; color: #EDEEF0; text-align: left">
+<div style="display: flex; justify-content: space-between; width: 100%; color: #A3AAB4">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h13v4H3z"></path><path d="M19 14v4M21.5 14v4M18 5c0 2 2.5 2 2.5 4.5"></path></svg>
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C8F169" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; line-height: 1; color: {{cigColor}}">{{cig}}</div>
+<div style="font-size: 12px; color: #A3AAB4">Cigs · Mon was 13</div>
+</div>
+</button>
+
+<button onClick="{{addTea}}" aria-label="Log one tea" style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 12px; height: 104px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; color: #EDEEF0; text-align: left">
+<div style="display: flex; justify-content: space-between; width: 100%; color: #A3AAB4">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"></path><path d="M16 10h2a2 2 0 0 1 0 4h-2"></path></svg>
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C8F169" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; line-height: 1">{{tea}}</div>
+<div style="font-size: 12px; color: #A3AAB4">Tea · ₹20 each</div>
+</div>
+</button>
+
+<button onClick="{{addWater}}" aria-label="Log 250 millilitres of water" style="background: #171A1E; border: 1px dashed #3A414A; border-radius: 18px; padding: 12px; height: 104px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; color: #EDEEF0; text-align: left">
+<div style="display: flex; justify-content: space-between; width: 100%; color: #7CC4FF">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"></path></svg>
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C8F169" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; line-height: 1">{{waterLabel}}</div>
+<div style="font-size: 12px; color: #A3AAB4">Water · tap +250 ml</div>
+</div>
+</button>
+
+<button aria-label="Log a meal" style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 12px; height: 104px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; color: #EDEEF0; text-align: left">
+<div style="color: #A3AAB4">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 9 0 0 1-18 0z"></path><path d="M9 7c0-1.2 1.2-1.2 1.2-2.4M13.5 7c0-1.2 1.2-1.2 1.2-2.4"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; line-height: 1.1">Lunch</div>
+<div style="font-size: 12px; color: #A3AAB4">13:00 · ₹130</div>
+</div>
+</button>
+
+<button aria-label="Open supplement checklist" style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 12px; height: 104px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; color: #EDEEF0; text-align: left">
+<div style="color: #A3AAB4">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"></path><path d="m7 10 7 7"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; line-height: 1">0<span style="font-size: 16px; color: #7D858F">/4</span></div>
+<div style="font-size: 12px; color: #A3AAB4">Supps · paused</div>
+</div>
+</button>
+
+<button aria-label="Log breakfast protein" style="background: #171A1E; border: 1px dashed #3A414A; border-radius: 18px; padding: 12px; height: 104px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; color: #EDEEF0; text-align: left">
+<div style="color: #A3AAB4">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3c3.5 0 6 6 6 10a6 6 0 0 1-12 0c0-4 2.5-10 6-10z"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; line-height: 1">—<span style="font-size: 16px; color: #7D858F">/50g</span></div>
+<div style="font-size: 12px; color: #A3AAB4">Bkfst protein</div>
+</div>
+</button>
+</div>
+
+<div style="font-size: 12px; color: #A3AAB4; min-height: 16px">{{lastLogged}}</div>
+
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 14px; display: flex; align-items: center; gap: 12px">
+<div style="width: 40px; height: 40px; border-radius: 12px; background: #1F2329; display: flex; align-items: center; justify-content: center; color: #7CC4FF">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="13" rx="2"></rect><path d="M4 11h16M8 20v-3M16 20v-3"></path></svg>
+</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 15px; font-weight: 600">{{busTitle}}</div>
+<div style="font-size: 12px; color: #A3AAB4">{{busSub}}</div>
+</div>
+<button onClick="{{toggleBus}}" style="background: #1F2329; color: #EDEEF0; border: 1px solid #3A414A; border-radius: 12px; height: 44px; padding: 0 14px; font-size: 14px; font-weight: 600">{{busCta}}</button>
+</div>
+
+<div style="background: #C8F169; color: #0E1012; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase">
+<span>Up next · RS-34</span><span>13 days to 30 Nov</span></div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700; line-height: 1.2">Trace rootcheck_path: root &amp; jailbreak detection</div>
+<div style="font-size: 13px; line-height: 1.4; color: #2A3310">Open lib/rootcheck_path_method_channel.dart and find the Dart → native entry point.</div>
+<div style="display: flex; gap: 8px">
+<a href="Study.dc.html" style="flex-grow: 1; height: 44px; border-radius: 12px; background: #0E1012; color: #C8F169; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; text-decoration: none">Start 25 min</a>
+<a href="BusMode.dc.html" style="height: 44px; padding: 0 14px; border-radius: 12px; border: 1.5px solid #0E1012; color: #0E1012; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; text-decoration: none">Bus mode</a>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 12px; color: #A3AAB4">Slept</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">~7.5 h <span style="font-size: 12px; color: #7D858F; font-family: Inter, sans-serif; font-weight: 500">est.</span></div>
+<div style="font-size: 12px; color: #A3AAB4">~22:30 → ~06:00</div>
+</div>
+<a href="Money.dc.html" style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: #EDEEF0">
+<div style="font-size: 12px; color: #A3AAB4">Spent today</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">₹278</div>
+<div style="font-size: 12px; color: #A3AAB4">3 entries · week ₹10.6k</div>
+</a>
+</div>
+</div>
+
+<nav aria-label="Main" style="height: 76px; border-top: 1px solid #22262C; background: #0E1012; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 0 8px">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #C8F169; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="M4 10h16"></path></svg>Today</a>
+<a href="Study.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #A3AAB4; text-decoration: none; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5"></path></svg>Study</a>
+<a href="Trends.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #A3AAB4; text-decoration: none; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>Week</a>
+<a href="Money.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #A3AAB4; text-decoration: none; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M6 9h12M6 4h3a5 5 0 0 1 0 10H6l8 6"></path></svg>Money</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"cigBudget":{"editor":"int","default":5,"min":0,"max":20},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { cig: 4, tea: 2, water: 0, last: 'Last: tea + cig at 16:30 · ₹50', bus: 'arrived' };
+  }
+  renderVals() {
+    const budget = this.props.cigBudget ?? 5;
+    const s = this.state;
+    const now = '18:02';
+    const busMap = {
+      arrived: { t: 'Reached office 10:40', s: 'Boarded 09:20 · 1h 20m', c: 'Board home' },
+      riding: { t: 'On the bus home', s: 'Boarded ' + now + ' · bus mode ready', c: 'Arrived' },
+      home: { t: 'Home 19:28', s: 'Commute today 2h 46m', c: 'Done' }
+    };
+    const b = busMap[s.bus];
+    return {
+      cig: s.cig,
+      tea: s.tea,
+      waterLabel: s.water === 0 ? '—' : (s.water / 1000).toFixed(2).replace(/0$/, '') + ' L',
+      cigColor: s.cig > budget ? '#FFA94D' : '#EDEEF0',
+      lastLogged: s.last,
+      busTitle: b.t,
+      busSub: b.s,
+      busCta: b.c,
+      addCig: () => this.setState({ cig: s.cig + 1, last: 'Logged 1 cigarette · ' + now + ' · ₹25 · Undo' }),
+      addTea: () => this.setState({ tea: s.tea + 1, last: 'Logged 1 tea · ' + now + ' · ₹20 · Undo' }),
+      addWater: () => this.setState({ water: s.water + 250, last: 'Logged 250 ml water · ' + now + ' · Undo' }),
+      toggleBus: () => this.setState({ bus: s.bus === 'arrived' ? 'riding' : 'home' })
+    };
+  }
+}
+</script>
+</body>
+</html>

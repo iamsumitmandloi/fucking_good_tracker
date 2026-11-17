@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Week review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8F169}a:hover{color:#E2FFA6}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0E1012; color: #EDEEF0; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex-grow: 1; padding: 28px 18px 0; display: flex; flex-direction: column; gap: 10px">
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 13px; color: #A3AAB4">Wed 11 – Tue 17 Nov · 7 of 7 days logged</div>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Week</h1>
+</div>
+
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<div style="font-size: 14px; font-weight: 600">Cigarettes</div>
+<div style="font-size: 12px; color: #A3AAB4">48 total · ≈ ₹1,200 at ₹25 each</div>
+</div>
+<div style="display: flex; align-items: flex-end; gap: 10px; height: 96px">
+<sc-for list="{{cigs}}" as="d" hint-placeholder-count="7">
+<div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 4px">
+<div style="font-size: 11px; color: #C4C9D0">{{d.v}}</div>
+<div style="width: 100%; border-radius: 6px 6px 2px 2px; height: {{d.h}}; background: {{d.c}}"></div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 10px">
+<sc-for list="{{cigs}}" as="d" hint-placeholder-count="7">
+<div style="flex-grow: 1; text-align: center; font-size: 11px; color: #7D858F">{{d.day}}</div>
+</sc-for>
+</div>
+<div style="font-size: 13px; color: #C8F169">Down from 13 on Wed to 4 on Mon and Tue.</div>
+</div>
+
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<div style="font-size: 14px; font-weight: 600">Sleep window</div>
+<div style="font-size: 12px; color: #A3AAB4">avg ≈ 6.5 h · 7 h+ on 2 nights</div>
+</div>
+<sc-for list="{{sleep}}" as="n" hint-placeholder-count="7">
+<div style="display: flex; align-items: center; gap: 8px; height: 16px">
+<div style="width: 26px; font-size: 11px; color: #7D858F">{{n.day}}</div>
+<div style="position: relative; width: 262px; height: 10px; border-radius: 5px; background: #1F2329">
+<div style="position: absolute; top: 0; height: 10px; border-radius: 5px; left: {{n.left}}; width: {{n.w}}; background: {{n.c}}"></div>
+</div>
+<div style="font-size: 11px; color: #C4C9D0; width: 34px; text-align: right">{{n.h}}</div>
+</div>
+</sc-for>
+<div style="display: flex; justify-content: space-between; padding-left: 34px; padding-right: 42px; font-size: 10px; color: #7D858F">
+<span>21:00</span><span>00:00</span><span>04:00</span><span>08:00</span><span>11:00</span></div>
+<div style="font-size: 13px; color: #FFA94D">Sat night: asleep ~04:00. Sunday was the 2,096-step day.</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 14px; font-weight: 600">Weight</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600">88.1 <span style="font-size: 12px; color: #7D858F; font-family: Inter, sans-serif">kg avg</span></div>
+<div style="position: relative; height: 54px; border-bottom: 1px solid #2A2F36">
+<div style="position: absolute; left: 0; right: 0; top: {{wAvgTop}}; border-top: 1px dashed #C8F169"></div>
+<sc-for list="{{weights}}" as="w" hint-placeholder-count="7">
+<div style="position: absolute; width: 7px; height: 7px; border-radius: 4px; background: #C4C9D0; left: {{w.left}}; top: {{w.top}}"></div>
+</sc-for>
+</div>
+<div style="font-size: 11px; color: #A3AAB4">Axis 86–90 kg. Daily swing 1.6 kg is noise; watch the line.</div>
+</div>
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 14px; font-weight: 600">Not logged</div>
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #A3AAB4">Water</span><span style="color: #FFA94D">0/7</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #A3AAB4">Bkfst protein</span><span style="color: #FFA94D">0/7</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #A3AAB4">Study sessions</span><span style="color: #FFA94D">0</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #A3AAB4">Energy</span><span>3/7</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #A3AAB4">Steps</span><span>5/7</span></div>
+</div>
+</div>
+</div>
+
+<nav aria-label="Main" style="height: 76px; border-top: 1px solid #22262C; background: #0E1012; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 0 8px">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #A3AAB4; text-decoration: none; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="M4 10h16"></path></svg>Today</a>
+<a href="Study.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #A3AAB4; text-decoration: none; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5"></path></svg>Study</a>
+<a href="Trends.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #C8F169; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>Week</a>
+<a href="Money.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #A3AAB4; text-decoration: none; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M6 9h12M6 4h3a5 5 0 0 1 0 10H6l8 6"></path></svg>Money</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const days = ['We', 'Th', 'Fr', 'Sa', 'Su', 'Mo', 'Tu'];
+    const c = [13, 5, 11, 6, 5, 4, 4];
+    const cigs = c.map((v, i) => ({ v: v, day: days[i], h: Math.round(v / 13 * 74) + 'px', c: i >= 5 ? '#C8F169' : '#4A525C' }));
+    const nights = [[3, 9, '6'], [3.5, 11.1, '7.6'], [3, 9, '6'], [3, 9, '6'], [7, 13.1, '~6.1'], [5, 11, '6'], [1.5, 9, '~7.5']];
+    const W = 262;
+    const sleep = nights.map((n, i) => ({ day: days[i], left: Math.round(n[0] / 14 * W) + 'px', w: Math.round((n[1] - n[0]) / 14 * W) + 'px', h: n[2] + 'h', c: n[0] >= 5 ? '#FFA94D' : '#7CC4FF' }));
+    const kg = [87.1, 88, 88.5, 88.1, 88.5, 88.7, 87.91];
+    const H = 50;
+    const y = (v) => Math.round((90 - v) / 4 * H);
+    const weights = kg.map((v, i) => ({ left: Math.round(i / 6 * 140) + 'px', top: (y(v) - 3) + 'px' }));
+    const avg = kg.reduce((a, b) => a + b, 0) / kg.length;
+    return { cigs: cigs, sleep: sleep, weights: weights, wAvgTop: y(avg) + 'px' };
+  }
+}
+</script>
+</body>
+</html>

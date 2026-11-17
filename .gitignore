@@ -1,0 +1,18 @@
+# --- Secrets and personal data (never commit) ---
+secrets.json
+*.env
+.env*
+fixtures/
+**/fixtures/live_*.json
+
+# Scratch file holding the live URL + token. Delete it once secrets.json exists.
+fucking_good_tracker/shit
+
+# --- Local tooling ---
+.DS_Store
+.remember/
+**/.remember/
+.idea/
+*.iml
+.vscode/
+.fvm/
