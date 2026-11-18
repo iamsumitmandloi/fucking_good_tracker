@@ -19,6 +19,11 @@ enum AppIcons {
   clock,
   settings,
   edit,
+  day,
+  rows,
+  trends,
+  insights,
+  chevronLeft,
 }
 
 class AppIcon extends StatelessWidget {
@@ -244,6 +249,45 @@ List<Path> _paths(AppIcons icon) {
     case AppIcons.edit:
       return [
         _line([4, 20, 8, 19, 19, 8, 16, 5, 5, 16, 4, 20]),
+      ];
+    case AppIcons.day:
+      return [
+        Path()
+          ..addOval(Rect.fromCircle(center: const Offset(12, 12), radius: 4)),
+        _line([12, 2, 12, 5]),
+        _line([12, 19, 12, 22]),
+        _line([2, 12, 5, 12]),
+        _line([19, 12, 22, 12]),
+      ];
+    case AppIcons.rows:
+      return [
+        _line([4, 6, 20, 6]),
+        _line([4, 10, 20, 10]),
+        _line([4, 14, 20, 14]),
+        _line([4, 18, 20, 18]),
+      ];
+    case AppIcons.trends:
+      return [
+        _line([3, 17, 9, 11, 13, 15, 21, 7]),
+        _line([15, 7, 21, 7, 21, 13]),
+      ];
+    case AppIcons.insights:
+      return [
+        _line([9, 18, 15, 18]),
+        _line([10, 21, 14, 21]),
+        Path()
+          ..moveTo(9, 16)
+          ..cubicTo(9, 15, 8.7, 14.2, 8, 13.5)
+          ..arcToPoint(
+            const Offset(16, 13.5),
+            radius: const Radius.circular(6),
+            largeArc: true,
+          )
+          ..cubicTo(15.3, 14.2, 15, 15, 15, 16),
+      ];
+    case AppIcons.chevronLeft:
+      return [
+        _line([15, 6, 9, 12, 15, 18]),
       ];
   }
 }

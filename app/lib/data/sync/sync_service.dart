@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../core/clock.dart';
+import '../../core/feature_flags.dart';
 import '../../core/result.dart';
 import '../../domain/event.dart';
 import '../local/db.dart';
@@ -70,6 +71,8 @@ class SyncService {
   }
 
   Future<FlushOutcome> _flush() async {
+    // Read-only build: whatever is queued stays queued, nothing is POSTed.
+    if (!FeatureFlags.logging) return FlushOutcome.blocked;
     if (_authBlocked) return FlushOutcome.blocked;
     var sentAny = false;
     while (true) {

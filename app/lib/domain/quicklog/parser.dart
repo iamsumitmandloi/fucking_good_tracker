@@ -207,9 +207,15 @@ const _categoryWords = <String, List<String>>{
   ],
   SpendCategory.transport: [
     'auto', 'uber', 'ola', 'rapido', 'metro', 'ticket', 'cab', 'fuel', //
-    'petrol', 'pass',
+    'petrol', 'pass', 'transport',
   ],
-  SpendCategory.grooming: ['haircut', 'salon', 'barber', 'shave'],
+  SpendCategory.grooming: [
+    'haircut', 'salon', 'barber', 'shave', 'trim', 'trimming', 'beard', //
+  ],
+  SpendCategory.oneOff: [
+    'registration', 'developer', 'play console', 'subscription', //
+    'one-off', 'one off',
+  ],
   SpendCategory.bills: [
     'bill',
     'electricity',
@@ -219,7 +225,9 @@ const _categoryWords = <String, List<String>>{
     'internet',
     'emi',
   ],
-  SpendCategory.tobacco: ['lighter', 'pack'],
+  SpendCategory.tobacco: [
+    'lighter', 'pack', 'packet', 'cig', 'cigs', 'cigarette', 'cigarettes', //
+  ],
   SpendCategory.tea: ['tea', 'chai'],
 };
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:starting_again/core/feature_flags.dart';
 import 'package:starting_again/core/clock.dart';
 import 'package:starting_again/core/ids.dart';
 import 'package:starting_again/data/local/db.dart';
@@ -48,6 +49,10 @@ Map<String, dynamic> row(
 };
 
 void main() {
+  // Exercises the write paths, which Phase 7 keeps behind the flag.
+  setUpAll(() => FeatureFlags.logging = true);
+  tearDownAll(() => FeatureFlags.logging = false);
+
   late FakeSheetServer server;
   late AppDatabase db;
   late FixedClock clock;
@@ -237,10 +242,26 @@ void main() {
       await legacy.applyTabs({
         'Daily Summary': [
           {'_row': 2, 'Date': '11 Nov 2026', 'Cigarettes': '13'},
+          {
+            '_row': 3,
+            'Date': '2026-11-17',
+            'Sleep start': '22:30',
+            'Wake': '~06:00',
+            'Cigarettes': '4',
+          },
+        ],
+        'Spending': [
+          {
+            '_row': 2,
+            'Date': '2026-11-15',
+            'Category': 'Blinkit',
+            'Amount INR': '869',
+          },
         ],
       });
       await events.mergeServerRows([
         row('a', '2026-11-17', '10:00', 'tea', amount: '20'),
+        row('test-1', '2026-11-17', '', 'note'), // untimed: never "last"
       ]);
       cubit = TodayCubit(
         events: events,
@@ -252,6 +273,10 @@ void main() {
       final s = await until(cubit, (s) => s.loaded);
       expect(s.dayN, 7);
       expect(s.summary.cigs, isNull); // legacy never feeds Today's tiles
+      expect(s.night!.hours, 7.5); // last night from Daily Summary
+      expect(s.night!.approx, isTrue);
+      expect(s.weekSpend, 889); // 869 legacy + 20 live, like Money
+      expect(s.lastEvent!.id, 'a');
     });
 
     test('no data at all: everything is null, not 0', () async {

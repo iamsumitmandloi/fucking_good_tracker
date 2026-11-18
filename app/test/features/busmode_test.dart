@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:starting_again/core/feature_flags.dart';
 import 'package:starting_again/core/ids.dart';
 import 'package:starting_again/data/local/db.dart';
 import 'package:starting_again/data/repo/events_repository.dart';
@@ -16,6 +17,10 @@ import '../support/fake_sheet_server.dart';
 import '../support/study_fixtures.dart';
 
 void main() {
+  // Exercises the write paths, which Phase 7 keeps behind the flag.
+  setUpAll(() => FeatureFlags.logging = true);
+  tearDownAll(() => FeatureFlags.logging = false);
+
   group('Phase 2 gate: Bus mode offline → reconnect', () {
     late FakeSheetServer server;
     late AppDatabase db;

@@ -16,3 +16,6 @@ fucking_good_tracker/shit
 *.iml
 .vscode/
 .fvm/
+
+# --- Build output ---
+app/android/build/

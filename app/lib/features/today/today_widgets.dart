@@ -125,8 +125,10 @@ class UndoLine extends StatelessWidget {
     } else {
       text = '';
     }
+    // 44 tall only while the Undo button is there (touch target);
+    // otherwise just enough for one caption line, or a small gap.
     return SizedBox(
-      height: 44,
+      height: u != null ? 44 : (text.isEmpty ? 12 : 32),
       child: Row(
         children: [
           Expanded(

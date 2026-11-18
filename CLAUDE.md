@@ -2,6 +2,8 @@
 
 Resume by reading this file, then `PROGRESS.md` (current phase, next step, blockers), then `PLAN.md` and `DECISIONS.md`.
 
+**Phase 7 (current direction):** the app is a read-only viewer of the Events tab. Brief `handoff_v2/AGENT_PROMPT_v2.md` (it overrides the PRD where they differ), plan `PLAN_v2.md`, design `handoff_v2/design/`. Every write path sits behind `FeatureFlags.logging` (off). No writes to the sheet at all, not even `dev-` rows, unless the owner turns logging back on.
+
 ## Where things are
 - Requirements: `handoff/PRD.md` (source of truth). Design: `handoff/design/DESIGN.md` + `handoff/design/screens/*.dc.html` (read, don't run).
 - Backend: `handoff/backend/Code.gs`. **Do not modify or redeploy.** If it must change, stop and explain why.

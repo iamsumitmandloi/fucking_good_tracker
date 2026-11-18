@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Insights</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8F169}a:hover{color:#E2FFA6}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0E1012; color: #EDEEF0; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex-grow: 1; padding: 24px 16px 0; display: flex; flex-direction: column; gap: 10px; min-height: 0">
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.02em">Insights</h1>
+<div style="font-size: 12px; color: #A3AAB4">7 days in. Patterns firm up after about 3 weeks.</div>
+</div>
+
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="4">
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+<div style="font-size: 14px; font-weight: 600; line-height: 1.3">{{c.title}}</div>
+<div role="img" aria-label="{{c.confAria}}" style="display: flex; gap: 3px; flex-shrink: 0">
+<sc-for list="{{c.dots}}" as="d" hint-placeholder-count="5"><span style="width: 7px; height: 7px; border-radius: 4px; background: {{d.bg}}; border: 1px solid #5D646E"></span></sc-for>
+</div>
+</div>
+<div style="font-size: 12px; color: #A3AAB4; line-height: 1.4">{{c.body}}</div>
+</div>
+</sc-for>
+
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<div style="font-size: 14px; font-weight: 600">What's logged</div>
+<div style="display: flex; gap: 8px; font-size: 10px; color: #7D858F">
+<span style="display: flex; align-items: center; gap: 3px"><span style="width: 8px; height: 8px; border-radius: 2px; background: #C4C9D0"></span>logged</span>
+<span style="display: flex; align-items: center; gap: 3px"><span style="width: 8px; height: 8px; border-radius: 2px; border: 1px dashed #A3AAB4"></span>part</span>
+<span style="display: flex; align-items: center; gap: 3px"><span style="width: 8px; height: 8px; border-radius: 2px; background: #22262C"></span>missing</span>
+</div>
+</div>
+<div style="display: flex; padding-left: 108px; gap: 4px; font-size: 10px; color: #7D858F"><span style="width: 18px; text-align: center">W</span><span style="width: 18px; text-align: center">T</span><span style="width: 18px; text-align: center">F</span><span style="width: 18px; text-align: center">S</span><span style="width: 18px; text-align: center">S</span><span style="width: 18px; text-align: center">M</span><span style="width: 18px; text-align: center">T</span></div>
+<sc-for list="{{coverage}}" as="r" hint-placeholder-count="8">
+<div style="display: flex; align-items: center; gap: 4px; height: 20px">
+<div style="width: 104px; font-size: 12px; color: #C4C9D0">{{r.name}}</div>
+<sc-for list="{{r.cells}}" as="x" hint-placeholder-count="7"><span style="width: 18px; height: 14px; border-radius: 3px; box-sizing: border-box; background: {{x.bg}}; border: {{x.border}}"></span></sc-for>
+<div style="flex-grow: 1; text-align: right; font-size: 11px; color: #A3AAB4">{{r.note}}</div>
+</div>
+</sc-for>
+<div style="font-size: 12px; color: #A3AAB4; line-height: 1.4; border-top: 1px solid #22262C; padding-top: 6px">Tell the logging agent: a time on every entry, plus water, breakfast protein and study minutes.</div>
+</div>
+</div>
+<nav aria-label="Main" style="height: 72px; border-top: 1px solid #22262C; background: #0E1012; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 0 6px; flex-shrink: 0">
+<a href="V2Day.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navDay}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>Day</a>
+<a href="V2Week.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navWeek}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>Week</a>
+<a href="V2Smoking.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navTrends}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>Trends</a>
+<a href="V2Money.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navMoney}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M6 9h12M6 4h3a5 5 0 0 1 0 10H6l8 6"></path></svg>Money</a>
+<a href="V2Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navInsights}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"></path></svg>Insights</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dots = (n) => [0, 1, 2, 3, 4].map((i) => ({ bg: i < n ? '#C4C9D0' : 'transparent' }));
+    const card = (title, body, n) => ({ title: title, body: body, dots: dots(n), confAria: 'Confidence ' + n + ' of 5' });
+    const cards = [
+      card('Tea and cigarettes go together', '8 of 17 timed cigarettes were logged at the same minute as a tea. A direct count, not a guess.', 3),
+      card('More cigarettes on office days', '7.8 a day across 5 office days vs 5.5 across 2 off days. Too few days to trust yet.', 1),
+      card('Fewer after a 7h+ night', '5.5 the next day after 2 longer nights vs 7.8 after 5 shorter ones. Both long nights were before office days, so it overlaps the card above.', 1),
+      card('Sunday 15 stands out', 'Asleep 04:00 to 10:07, 2,096 steps, ₹1,583 on delivery apps. One day, so it is a note, not a pattern.', 1)
+    ];
+    const P = 'part', L = 'on', M = 'off';
+    const mk = (name, cells, note) => ({ name: name, note: note, cells: cells.map((c) => ({ bg: c === L ? '#C4C9D0' : (c === P ? 'transparent' : '#22262C'), border: c === P ? '1px dashed #A3AAB4' : '1px solid transparent' })) });
+    const coverage = [
+      mk('Sleep', [L, L, L, L, L, L, L], '7/7'),
+      mk('Weight', [L, L, L, L, L, L, L], '7/7'),
+      mk('Spending', [L, L, L, L, L, L, L], '7/7'),
+      mk('Cigarettes', [P, L, P, P, P, P, L], '17/50 timed'),
+      mk('Steps', [L, L, L, M, L, L, L], '6/7'),
+      mk('Water', [M, M, M, M, M, M, M], '0/7'),
+      mk('Bkfst protein', [M, M, M, M, M, M, M], '0/7'),
+      mk('Study', [M, M, M, M, M, M, M], '0/7')
+    ];
+    return { cards: cards, coverage: coverage, navDay: '#A3AAB4', navWeek: '#A3AAB4', navTrends: '#A3AAB4', navMoney: '#A3AAB4', navInsights: '#C8F169' };
+  }
+}
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../core/clock.dart';
+import '../../core/feature_flags.dart';
 import '../../core/ids.dart';
 import '../../core/result.dart';
 import '../../domain/event.dart';
@@ -85,6 +86,7 @@ class EventsRepository {
 
   /// Optimistic write: event + outbox row in one transaction.
   Future<void> log(List<Event> events) async {
+    if (!FeatureFlags.logging) throw ReadOnlyError();
     if (events.isEmpty) return;
     final now = _clock.nowUtc().millisecondsSinceEpoch;
     await _db.transaction(() async {
@@ -109,6 +111,7 @@ class EventsRepository {
   /// Before sync: drop it locally. After sync: post a `void` event.
   /// Returns the void event when one was written.
   Future<Event?> undo(String id) async {
+    if (!FeatureFlags.logging) throw ReadOnlyError();
     final pending = await (_db.select(
       _db.outbox,
     )..where((o) => o.id.equals(id))).getSingleOrNull();

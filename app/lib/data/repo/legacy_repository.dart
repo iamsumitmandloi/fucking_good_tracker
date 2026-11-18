@@ -19,7 +19,9 @@ class LegacyRepository {
   final SheetApi _api;
   final Clock _clock;
 
-  static const tabs = ['Daily Summary', 'Timeline', 'Spending'];
+  // Timeline is not read: Daily Summary has the sleep times and Timeline
+  // carries no costs (checked on the live sheet, DECISIONS 32).
+  static const tabs = ['Daily Summary', 'Spending'];
 
   /// Legacy data is history; refetch at most every 12 h unless forced.
   static const staleAfter = Duration(hours: 12);

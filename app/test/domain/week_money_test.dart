@@ -139,6 +139,29 @@ void main() {
   });
 
   group('burn', () {
+    test('itemised rows of one order count as one order', () {
+      Event item(String id, String date, double amt, String merchant) => Event(
+        id: id,
+        date: date,
+        type: EventType.spend,
+        amountInr: amt,
+        category: 'delivery',
+        note: merchant,
+      );
+      final b = burn(
+        [
+          item('a', days[0], 240, 'Order merchant unreported'),
+          item('b', days[0], 12, 'Order merchant unreported'),
+          item('c', days[0], 694, 'Zepto Marketplace'),
+          item('d', days[3], 258, 'Zomato'),
+        ],
+        from: days.first,
+        to: days.last,
+      );
+      expect(b.deliveryCount, 3);
+      expect(b.delivery, 1204);
+    });
+
     test('excludes bills and one_off; split and pay later', () {
       final b = burn(
         [

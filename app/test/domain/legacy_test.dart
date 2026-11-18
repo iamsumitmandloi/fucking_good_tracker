@@ -65,13 +65,82 @@ List<Map<String, dynamic>> spending() => [
   {'_row': 5, 'Date': '2026-11-16', 'Item': 'Bad row', 'Amount (₹)': 'n/a'},
 ];
 
-List<Map<String, dynamic>> timeline() => [
-  {'_row': 2, 'Date': '2026-11-15', 'Time': '23:10', 'Entry': 'slept 22:30'},
-  {'_row': 3, 'Date': '2026-11-16', 'Time': '06:30', 'Entry': 'woke 6:00'},
-  {'_row': 4, 'Date': '2026-11-16', 'Time': '07:05', 'Entry': 'slept 23:30'},
-  {'_row': 5, 'Date': '2026-11-16', 'Time': '09:00', 'Entry': '1 cig + tea 45'},
+/// The live sheet's real headers (17 Nov read); values are made up.
+List<Map<String, dynamic>> realDaily() => [
+  {
+    '_row': 2,
+    'Date': '2026-11-16',
+    'Sleep start': '~01:30',
+    'Wake': '07:30',
+    'Sleep hours': '~6',
+    'Weight kg': '88.7',
+    'Bus boarded': '09:10',
+    'Bus arrived': '10:40',
+    'Commute minutes': '90',
+    'Cigarettes': '4',
+    'Tea cups': '2',
+    'Water L': '',
+    'Exercise': '12,576 total steps (user-reported); separate exercise none',
+    'Work': 'Evening bus commute 20:15–21:40 (85 min); morning 90',
+    'Spending INR': '278',
+    'Steps': '',
+    'Energy': 'Okay (despite travel fatigue)',
+    'Breakfast protein (g)': '30',
+    'Notes': 'Morning commute 90 min',
+  },
+  {
+    '_row': 3,
+    'Date': '2026-11-17',
+    'Sleep start': '22:30',
+    'Wake': '06:00',
+    'Sleep hours': '7.5',
+    'Commute minutes': '140',
+    'Notes': 'Commute 75 min + 65 min = 140 min',
+    'Energy': '',
+    'Steps': '8,000',
+  },
 ];
 
+List<Map<String, dynamic>> realSpending() => [
+  {
+    '_row': 2,
+    'Date': '2026-11-11',
+    'Time IST': '21:05',
+    'Merchant / payee': 'Order merchant unreported',
+    'Category': 'Cigarette packet',
+    'Payment method': 'UPI',
+    'Amount INR': '240',
+    'Source': 'Gmail',
+  },
+  {
+    '_row': 3,
+    'Date': '2026-11-11',
+    'Time IST': '21:05',
+    'Merchant / payee': 'Order merchant unreported',
+    'Category': 'Order handling charge',
+    'Payment method': 'UPI',
+    'Amount INR': '12',
+    'Source': 'Gmail',
+  },
+  {
+    '_row': 4,
+    'Date': '2026-11-14',
+    'Merchant / payee': 'Zomato',
+    'Category': 'Dinner — litti baati meal',
+    'Payment method': 'Card',
+    'Amount INR': '258',
+    'Source': 'Gmail / LazyPay',
+  },
+  {
+    '_row': 5,
+    'Date': '2026-11-15',
+    'Merchant / payee': 'Google',
+    'Category': 'Developer registration fee',
+    'Payment method': 'Card',
+    'Amount INR': '2,435',
+    'Source': 'Gmail HDFC alert + Google receipt',
+  },
+];
 void main() {
   group('legacy cell', () {
     test('PRD examples', () {
@@ -123,7 +192,6 @@ void main() {
     final imp = adaptLegacy({
       'Daily Summary': dailySummary(),
       'Spending': spending(),
-      'Timeline': timeline(),
     }, year: 2026);
 
     List<Event> of(EventType t, [String? date]) => [
@@ -170,19 +238,6 @@ void main() {
       expect(s[1].label, 'Electricity');
     });
 
-    test(
-      'Timeline → sleep and wake only; later-than-row time = day before',
-      () {
-        final sleeps = of(EventType.sleep);
-        expect(sleeps.map((e) => '${e.date} ${e.time}'), [
-          '2026-11-15 22:30',
-          '2026-11-15 23:30', // written 07:05 on the 16th
-        ]);
-        expect(of(EventType.wake).single.time, '06:00');
-        expect(of(EventType.cigarette, '2026-11-16').single.qty, 4.5);
-      },
-    );
-
     test('unknown shapes never throw', () {
       expect(
         adaptLegacy({
@@ -193,10 +248,81 @@ void main() {
           'Spending': [
             {'Amount': '5'},
           ],
-          'Timeline': [{}],
         }, year: 2026),
         LegacyImport.empty,
       );
+    });
+  });
+
+  group('live sheet headers (17 Nov read)', () {
+    final imp = adaptLegacy({
+      'Daily Summary': realDaily(),
+      'Spending': realSpending(),
+    }, year: 2026);
+    List<Event> of(EventType t) => [
+      for (final e in imp.events)
+        if (e.type == t) e,
+    ];
+
+    test('sleep start/wake: the night that ended that morning', () {
+      expect(
+        of(EventType.sleep).map((e) => '${e.date} ${e.time} ${e.approx}'),
+        [
+          '2026-11-16 01:30 true', // after midnight: same date
+          '2026-11-16 22:30 false', // evening: the day before the 17th
+        ],
+      );
+      expect(of(EventType.wake).map((e) => '${e.date} ${e.time}'), [
+        '2026-11-16 07:30',
+        '2026-11-17 06:00',
+      ]);
+      expect(imp.sleepHours['2026-11-16']!.value, 6);
+      expect(imp.sleepHours['2026-11-17']!.value, 7.5);
+    });
+
+    test('tea cups, breakfast protein, weight', () {
+      expect(of(EventType.tea).single.qty, 2);
+      final p = of(EventType.meal).single;
+      expect(p.unit, 'g');
+      expect(p.qty, 30);
+      expect(of(EventType.weight).single.qty, 88.7);
+    });
+
+    test('energy in words counts as logged, without a number', () {
+      final e = of(EventType.energy).single;
+      expect(e.qty, isNull);
+      expect(e.note, 'Okay (despite travel fatigue)');
+    });
+
+    test(
+      '16 Nov bugs flagged; one leg in Notes or a matching total is not',
+      () {
+        expect(imp.flags.map((f) => f.text), [
+          'Commute: 90 min in the column, 175 in Work (85 + 90)',
+          'Steps (12,576) are in Exercise, not in the Steps column',
+        ]);
+        expect(of(EventType.steps).single.qty, 8000);
+      },
+    );
+
+    test('Spending: description + merchant decide the category', () {
+      final s = of(EventType.spend);
+      expect(s.map((e) => e.label), [
+        'Cigarette packet',
+        'Order handling charge',
+        'Dinner — litti baati meal',
+        'Developer registration fee',
+      ]);
+      expect(s.map((e) => e.category), [
+        'delivery', // an item of an order (the design counts it too)
+        'delivery',
+        'delivery', // Zomato
+        'one_off',
+      ]);
+      expect(s[2].source, 'lazypay');
+      expect(s[0].time, '21:05');
+      expect(s[0].note, 'Order merchant unreported');
+      expect(s[3].amountInr, 2435);
     });
   });
 

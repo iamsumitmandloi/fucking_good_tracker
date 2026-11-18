@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:starting_again/features/money/money_screen.dart';
+import 'package:starting_again/features/week/week_screen.dart';
 
 import '../support/app_harness.dart';
 
@@ -102,6 +105,13 @@ final legacyTabs = {
   ],
 };
 
+/// The v1 Week and Money screens (legacy-merged) are no longer in the
+/// shell (Phase 7); they are kept, unused, and tested on test-only routes.
+final v1Routes = [
+  GoRoute(path: '/v1/week', builder: (_, _) => const WeekScreen()),
+  GoRoute(path: '/v1/money', builder: (_, _) => const MoneyScreen()),
+];
+
 Future<AppHarness> seeded(WidgetTester tester) async {
   final h = await AppHarness.create();
   await tester.runAsync(() async {
@@ -116,7 +126,7 @@ void main() {
     tester,
   ) async {
     final h = await seeded(tester);
-    await h.pump(tester, '/week');
+    await h.pump(tester, '/v1/week', extraRoutes: v1Routes);
 
     expect(find.text('Week'), findsWidgets);
     expect(
@@ -154,7 +164,7 @@ void main() {
     tester,
   ) async {
     final h = await seeded(tester);
-    await h.pump(tester, '/money');
+    await h.pump(tester, '/v1/money', extraRoutes: v1Routes);
 
     // Day-to-day = 25 + 130 + 612.5 = 767.5 → ₹110/day over 7 days.
     expect(find.text('₹110/day'), findsOneWidget);
@@ -172,13 +182,13 @@ void main() {
 
   testWidgets('Week and Money with no data: dashes, no zeros', (tester) async {
     final h = await AppHarness.create();
-    await h.pump(tester, '/week');
+    await h.pump(tester, '/v1/week', extraRoutes: v1Routes);
     expect(find.text('Not logged this week'), findsWidgets);
     expect(find.text('Not logged this week.'), findsOneWidget);
     await h.dispose(tester);
 
     final m = await AppHarness.create();
-    await m.pump(tester, '/money');
+    await m.pump(tester, '/v1/money', extraRoutes: v1Routes);
     expect(find.text('—'), findsWidgets);
     expect(find.text('Nothing spent\nthis week'), findsOneWidget);
     expect(find.text('Nothing spent today.'), findsOneWidget);

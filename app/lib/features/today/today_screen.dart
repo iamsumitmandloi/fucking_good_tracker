@@ -7,6 +7,7 @@ import '../../app/deps.dart';
 import '../../app/sync_status.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/app_icon.dart';
+import '../../app/widgets/common.dart';
 import '../../core/clock.dart';
 import '../../core/formatters.dart';
 import '../../core/ids.dart';
@@ -151,7 +152,19 @@ class _Header extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text('Today', style: context.text.h1),
+                Row(
+                  children: [
+                    Text('Today', style: context.text.h1),
+                    if (devIdBuild) ...[
+                      const SizedBox(width: 8),
+                      Tag(
+                        'DEV IDS',
+                        background: context.colors.warnWell,
+                        color: context.colors.warn,
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),
@@ -219,7 +232,7 @@ class _Tiles extends StatelessWidget {
               ? dash
               : '${trimNum(sum.waterMl! / 1000, digits: 2)} L',
         ),
-        caption: 'Water · tap +250 ml',
+        caption: 'Water · 250 ml',
         onTap: cubit.addWater,
         onLongPress: () => openQuickLog(context, prefill: 'water '),
       ),
@@ -239,7 +252,7 @@ class _Tiles extends StatelessWidget {
                 style: context.text.statM,
               ),
         caption: meal == null
-            ? 'Meal · not logged'
+            ? 'Meal'
             : [
                 ?meal.time,
                 if (meal.amountInr != null) rupees(meal.amountInr),

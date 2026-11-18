@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/viewer/viewer_cubit.dart';
 import 'deps.dart';
 import 'router.dart';
 import 'sync_status.dart';
@@ -12,14 +13,20 @@ class StartingAgainApp extends StatefulWidget {
     super.key,
     required this.deps,
     this.theme,
-    this.initialLocation = '/today',
+    this.initialLocation,
+    this.extraRoutes = const [],
   });
 
   final AppDeps deps;
 
   /// Tests pass a theme without google_fonts.
   final ThemeData? theme;
-  final String initialLocation;
+
+  /// Null opens the default tab ([defaultLocation]).
+  final String? initialLocation;
+
+  /// Tests mount screens that are not in the shell (e.g. the v1 Week).
+  final List<RouteBase> extraRoutes;
 
   @override
   State<StartingAgainApp> createState() => _StartingAgainAppState();
@@ -28,6 +35,7 @@ class StartingAgainApp extends StatefulWidget {
 class _StartingAgainAppState extends State<StartingAgainApp> {
   late final GoRouter _router = buildRouter(
     initialLocation: widget.initialLocation,
+    extraRoutes: widget.extraRoutes,
   );
 
   @override
@@ -49,8 +57,20 @@ class _StartingAgainAppState extends State<StartingAgainApp> {
         RepositoryProvider.value(value: d.settings),
         RepositoryProvider.value(value: d.appSync),
       ],
-      child: BlocProvider(
-        create: (_) => SyncStatusCubit(db: d.db, appSync: d.appSync),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => SyncStatusCubit(db: d.db, appSync: d.appSync),
+          ),
+          BlocProvider(
+            create: (_) => ViewerCubit(
+              events: d.events,
+              settings: d.settings,
+              db: d.db,
+              clock: d.clock,
+            ),
+          ),
+        ],
         child: MaterialApp.router(
           title: 'Starting Again',
           debugShowCheckedModeBanner: false,

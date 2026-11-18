@@ -1,5 +1,6 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:starting_again/core/feature_flags.dart';
 import 'package:starting_again/core/result.dart';
 import 'package:starting_again/data/local/db.dart';
 import 'package:starting_again/data/repo/events_repository.dart';
@@ -14,6 +15,10 @@ Event ev(String id, {EventType type = EventType.note}) =>
     Event(id: id, date: '2026-11-17', time: '18:02', type: type);
 
 void main() {
+  // Exercises the write paths, which Phase 7 keeps behind the flag.
+  setUpAll(() => FeatureFlags.logging = true);
+  tearDownAll(() => FeatureFlags.logging = false);
+
   late FakeSheetServer server;
   late AppDatabase db;
   late EventsRepository repo;

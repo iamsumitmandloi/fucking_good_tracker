@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The sheet is reached over HTTPS; release builds need this too. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="starting_again"
+        android:label="Starting Again"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

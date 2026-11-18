@@ -82,7 +82,13 @@ class TodayState extends Equatable {
 
   bool get overCigBudget => (summary.cigs ?? 0) > settings.cigBudget;
 
-  Event? get lastEvent => todayEvents.isEmpty ? null : todayEvents.last;
+  /// The latest entry with a time; untimed entries only when none has one.
+  Event? get lastEvent {
+    for (final e in todayEvents.reversed) {
+      if (e.time != null) return e;
+    }
+    return todayEvents.isEmpty ? null : todayEvents.last;
+  }
 
   BusAction get busAction {
     if (commute.riding) return BusAction.arrive;
@@ -174,12 +180,13 @@ class TodayCubit extends Cubit<TodayState> {
           _settingsValue = v[1]! as AppSettings;
           _bank = v[2]! as List<StudyQuestion>;
           _startHere = v[3]! as StartHere;
-          // Legacy history only moves "Day N" back to the first logged day.
-          _legacyFirst = firstDate(
-            adaptLegacy(
-              v[4]! as Map<String, List<Map<String, dynamic>>>,
-              year: _clock.nowIst().year,
-            ).events,
+          // Old tabs feed Day N, last night and the week's spend (as on
+          // Week/Money). Tiles stay live-only: today is logged in the app.
+          _legacyImport = adaptLegacy(
+            v[4]! as Map<String, List<Map<String, dynamic>>>,
+            year: _clock.nowIst().year,
+            cigPrice: _settingsValue.cigPrice,
+            teaPrice: _settingsValue.teaPrice,
           );
           _recompute();
         });
@@ -207,19 +214,16 @@ class TodayCubit extends Cubit<TodayState> {
   AppSettings _settingsValue = const AppSettings();
   List<StudyQuestion> _bank = const [];
   StartHere _startHere = const StartHere({});
-  String? _legacyFirst;
+  LegacyImport _legacyImport = LegacyImport.empty;
 
   void _recompute() {
     if (isClosed) return;
     final today = _clock.todayIst();
     final eff = effectiveEvents(_all);
-    final first = firstDate([
-      ...eff.take(1),
-      if (_legacyFirst != null)
-        Event(id: '', date: _legacyFirst!, type: EventType.note),
-    ]);
+    final merged = withLegacy(eff, _legacyImport);
+    final first = firstDate(merged);
     final weekFrom = addDays(today, -6);
-    final week = eff.where(
+    final week = merged.where(
       (e) =>
           e.amountInr != null &&
           e.date.compareTo(weekFrom) >= 0 &&
@@ -238,7 +242,7 @@ class TodayCubit extends Cubit<TodayState> {
             if (e.date == today) e,
         ],
         commute: commuteFor(eff, today),
-        night: () => nightEndingOn(sleepWindows(eff), today),
+        night: () => nightEndingOn(sleepWindows(merged), today),
         weekSpend: () => week.isEmpty
             ? null
             : week.fold<double>(0, (a, e) => a + e.amountInr!),

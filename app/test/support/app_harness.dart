@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:starting_again/app/app.dart';
 import 'package:starting_again/app/deps.dart';
@@ -36,10 +37,19 @@ class AppHarness {
     return AppHarness._(server, deps);
   }
 
-  Future<void> pump(WidgetTester tester, String location) async {
+  Future<void> pump(
+    WidgetTester tester,
+    String location, {
+    List<RouteBase> extraRoutes = const [],
+  }) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     await tester.pumpWidget(
-      StartingAgainApp(deps: deps, theme: testTheme, initialLocation: location),
+      StartingAgainApp(
+        deps: deps,
+        theme: testTheme,
+        initialLocation: location,
+        extraRoutes: extraRoutes,
+      ),
     );
     await settle(tester);
   }

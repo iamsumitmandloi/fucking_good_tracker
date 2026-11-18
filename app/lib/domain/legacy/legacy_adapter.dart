@@ -3,9 +3,9 @@ import 'package:equatable/equatable.dart';
 import '../../core/cells.dart';
 import '../../core/clock.dart';
 import '../../core/formatters.dart';
+import '../derivations/daily_stats.dart';
 import '../event.dart';
 import '../event_type.dart';
-import '../quicklog/build_events.dart';
 import '../quicklog/parser.dart';
 import 'legacy_cell.dart';
 
@@ -58,6 +58,27 @@ String? _col(Iterable<String> headers, List<String> patterns) {
   }
   return null;
 }
+
+/// First clock time in a cell: "~01:30", "1:30 am", "22.30" → `HH:mm`.
+String? _clock(String raw) {
+  final m = RegExp(
+    r'(\d{1,2})[:.](\d{2})\s*(am|pm)?',
+    caseSensitive: false,
+  ).firstMatch(raw);
+  if (m == null) return null;
+  var h = int.parse(m[1]!);
+  final min = int.parse(m[2]!);
+  final ap = m[3]?.toLowerCase();
+  if (ap == 'pm' && h < 12) h += 12;
+  if (ap == 'am' && h == 12) h = 0;
+  if (h > 23 || min > 59) return null;
+  return hhmmOf(h * 60 + min);
+}
+
+bool _isApprox(String raw) =>
+    raw.contains('~') ||
+    raw.contains('≈') ||
+    RegExp(r'\d\s*[–—-]\s*\d').hasMatch(raw);
 
 Set<String> _headers(List<Map<String, dynamic>> rows) => {
   for (final r in rows) ...r.keys,
@@ -139,11 +160,6 @@ LegacyImport adaptLegacy(
   } on Object {
     // as above
   }
-  try {
-    _timeline(tabs['Timeline'] ?? const [], year, events, cigPrice, teaPrice);
-  } on Object {
-    // as above
-  }
   return LegacyImport(events: events, sleepHours: sleep, flags: flags);
 }
 
@@ -159,10 +175,15 @@ void _daily(
   final cDate = _col(h, ['=date', '=day', 'date']);
   if (cDate == null) return;
   final cCig = _col(h, ['cig', 'smok']);
-  final cSleep = _col(h, ['sleep']);
+  // "Sleep hours" / "Sleep (h)"; never "Sleep start" or "Sleep quality".
+  final cSleep = _col(h, ['sleeph', '=sleep']);
+  final cBed = _col(h, ['sleepstart', 'bedtime', '=bed', 'asleepat']);
+  final cWake = _col(h, ['=wake', 'waketime', 'wakeup', 'woke']);
   final cWeight = _col(h, ['weight', '=wt', '=kg']);
   final cSteps = _col(h, ['step']);
   final cWater = _col(h, ['water']);
+  final cTea = _col(h, ['teacup', '=tea', '=teas']);
+  final cProtein = _col(h, ['protein']);
   final cEnergy = _col(h, ['energy']);
   final cCommute = _col(h, ['commute', 'bus', 'travel']);
   const tab = 'Daily Summary';
@@ -237,7 +258,11 @@ void _daily(
       );
     }
     final energy = cell(cEnergy);
-    if (energy.value != null && energy.value! >= 1 && energy.value! <= 10) {
+    // Words ("Okay", "Good overall") still mean it was logged: keep the
+    // text, no number (never a made-up score).
+    final energyNum =
+        energy.value != null && energy.value! >= 1 && energy.value! <= 10;
+    if (energyNum || energy.raw.isNotEmpty && !_naCell(energy.raw)) {
       out.add(
         _ev(
           tab,
@@ -245,13 +270,80 @@ void _daily(
           'energy',
           date,
           EventType.energy,
-          qty: energy.value,
+          qty: energyNum ? energy.value : null,
           approx: energy.approx,
+          note: energyNum ? null : energy.raw,
         ),
       );
     }
     final s = cell(cSleep);
     if (s.value != null && s.value! > 0 && s.value! <= 16) sleep[date] = s;
+
+    final tea = cell(cTea);
+    if (tea.value != null) {
+      out.add(
+        _ev(
+          tab,
+          row,
+          'tea',
+          date,
+          EventType.tea,
+          qty: tea.value,
+          unit: 'cup',
+          approx: tea.approx,
+        ),
+      );
+    }
+    final protein = cell(cProtein);
+    if (protein.value != null) {
+      out.add(
+        _ev(
+          tab,
+          row,
+          'protein',
+          date,
+          EventType.meal,
+          qty: protein.value,
+          unit: 'g',
+          label: proteinLabel,
+          approx: protein.approx,
+        ),
+      );
+    }
+
+    // Each row is the night that ended that morning (checked on the live
+    // sheet: start → wake equals "Sleep hours" on every row). An evening
+    // bedtime belongs to the day before.
+    final bedRaw = cBed == null ? '' : cellStr(r[cBed]);
+    final wakeRaw = cWake == null ? '' : cellStr(r[cWake]);
+    final bed = _clock(bedRaw);
+    final wake = _clock(wakeRaw);
+    if (bed != null && wake != null) {
+      final bedDate = minutesOf(bed)! >= 12 * 60 ? addDays(date, -1) : date;
+      out
+        ..add(
+          _ev(
+            tab,
+            row,
+            'bed',
+            bedDate,
+            EventType.sleep,
+            time: bed,
+            approx: _isApprox(bedRaw),
+          ),
+        )
+        ..add(
+          _ev(
+            tab,
+            row,
+            'wake',
+            date,
+            EventType.wake,
+            time: wake,
+            approx: _isApprox(wakeRaw),
+          ),
+        );
+    }
 
     // Data bugs: numbers that live in the wrong column. Surfaced, not fixed.
     final others = {
@@ -260,20 +352,29 @@ void _daily(
     };
     final commute = cell(cCommute);
     for (final e in others.entries) {
-      if (e.key == cCommute) continue;
-      final m = RegExp(
-        r'commute[^0-9]{0,20}(\d[\d,]*)\s*(?:min|m\b)|(\d[\d,]*)\s*min[a-z]*\s+commute',
-        caseSensitive: false,
-      ).firstMatch(e.value);
-      if (m == null) continue;
-      final said = double.tryParse((m[1] ?? m[2])!.replaceAll(',', ''));
-      if (said != null && commute.value != null && said != commute.value) {
+      if (e.key == cCommute || commute.value == null) continue;
+      var parts = _commuteMinutes(e.value);
+      if (parts.isEmpty) continue;
+      // "85 min … morning 90 … 175 total": a stated total is not added again.
+      final max = parts.reduce((a, b) => a > b ? a : b);
+      final others = parts.fold<double>(0, (a, b) => a + b) - max;
+      if (parts.length > 2 && max == others) {
+        parts = [
+          for (final p in parts)
+            if (p != max) p,
+        ];
+      }
+      final said = parts.fold<double>(0, (a, b) => a + b);
+      // Only a column that undercounts is a bug; text naming one leg of a
+      // longer day is not.
+      if (said > commute.value!) {
         flags.add(
           LegacyFlag(
             date: date,
             text:
                 'Commute: ${trimNum(commute.value)} min in the column, '
-                '${trimNum(said)} in ${e.key}',
+                '${trimNum(said)} in ${e.key}'
+                '${parts.length > 1 ? ' (${parts.map(trimNum).join(' + ')})' : ''}',
           ),
         );
       }
@@ -282,7 +383,7 @@ void _daily(
       for (final e in others.entries) {
         if (e.key == cSteps) continue;
         final m = RegExp(
-          r'(\d{1,3}(?:,\d{3})+|\d{4,6})\s*steps',
+          r'(\d{1,3}(?:,\d{3})+|\d{4,6})\s*(?:[a-z]+\s+){0,2}steps',
           caseSensitive: false,
         ).firstMatch(e.value);
         if (m != null) {
@@ -299,16 +400,48 @@ void _daily(
   }
 }
 
-String _legacyCategory(String category, String item) {
+bool _naCell(String raw) =>
+    parseLegacyCell(raw).raw.isEmpty ||
+    RegExp(
+      r'^\s*(?:n\s*/\s*a|na|none|-+|—)\s*$',
+      caseSensitive: false,
+    ).hasMatch(raw);
+
+/// Minutes stated in the sentence that mentions a commute:
+/// "Evening bus commute 20:15–21:40 (85 min); morning 90" → [85, 90].
+/// Clock times are ignored. Splits on "." and new lines only, so a clause
+/// after ";" stays with its commute sentence.
+List<double> _commuteMinutes(String text) {
+  final out = <double>[];
+  for (final sentence in text.split(RegExp(r'\.\s|\n'))) {
+    if (!sentence.toLowerCase().contains('commut')) continue;
+    for (final m in RegExp(
+      r'(?<![\d:.])(\d{1,3})\s*min\b|\b(?:morning|evening|return|home|office)\s+(\d{1,3})\b(?![:.]\d)',
+      caseSensitive: false,
+    ).allMatches(sentence)) {
+      out.add(double.parse((m[1] ?? m[2])!));
+    }
+  }
+  return out;
+}
+
+bool _isCategoryName(String s) {
+  final c = _norm(s);
+  return c == 'oneoff' ||
+      c == 'bill' ||
+      SpendCategory.all.any((k) => _norm(k) == c);
+}
+
+/// The live "Category" column holds descriptions ("Electricity bill",
+/// "Blinkit groceries"), so a known category name is used when present and
+/// otherwise the keyword guess runs on description + merchant.
+String _legacyCategory(String category, String merchant) {
   final c = _norm(category);
-  if (c.contains('oneoff') || c.contains('oneof')) return SpendCategory.oneOff;
-  if (c.contains('bill') || c.contains('utilit')) return SpendCategory.bills;
-  if (c.contains('deliver')) return SpendCategory.delivery;
   for (final known in SpendCategory.all) {
     if (c == _norm(known)) return known;
   }
-  final guess = categoryFor('$category $item');
-  return guess;
+  if (c.contains('oneoff')) return SpendCategory.oneOff;
+  return categoryFor('$category $merchant');
 }
 
 void _spending(List<Map<String, dynamic>> rows, int year, List<Event> out) {
@@ -336,14 +469,17 @@ void _spending(List<Map<String, dynamic>> rows, int year, List<Event> out) {
     'source',
     'payment',
   ]);
+  final cSource = _col(h, ['=source', 'reportedvia']);
   const tab = 'Spending';
   for (final r in rows) {
     final date = legacyDate(r[cDate], year: year);
     final amt = parseLegacyCell(r[cAmount]);
     if (date == null || amt.value == null) continue;
-    final item = cItem == null ? '' : cellStr(r[cItem]);
+    final merchant = cItem == null ? '' : cellStr(r[cItem]);
     final cat = cCat == null ? '' : cellStr(r[cCat]);
     final method = cMethod == null ? '' : cellStr(r[cMethod]);
+    final via = cSource == null ? '' : cellStr(r[cSource]);
+    final lazy = '$method $via'.toLowerCase().contains('lazy');
     out.add(
       _ev(
         tab,
@@ -353,75 +489,18 @@ void _spending(List<Map<String, dynamic>> rows, int year, List<Event> out) {
         EventType.spend,
         time: cTime == null ? null : cellTime(r[cTime]),
         amount: amt.value,
-        label: item.isEmpty ? (cat.isEmpty ? 'Spend' : cat) : item,
-        category: _legacyCategory(cat, item),
+        // A description ("Electricity bill") reads better than the merchant;
+        // a bare category name ("Bills") does not.
+        label: cat.isNotEmpty && !_isCategoryName(cat)
+            ? cat
+            : (merchant.isNotEmpty ? merchant : (cat.isEmpty ? 'Spend' : cat)),
+        category: _legacyCategory(cat, merchant),
         approx: amt.approx,
-        source: method.toLowerCase().contains('lazy') ? 'lazypay' : null,
-        note: method.isEmpty ? null : method,
+        source: lazy ? 'lazypay' : null,
+        // Merchant groups itemised rows of one order (Money "orders").
+        note: merchant.isEmpty ? null : merchant,
       ),
     );
-  }
-}
-
-/// Timeline phrases ("slept 22:30", "woke 6:10") → sleep and wake only.
-/// Counts and money come from Daily Summary and Spending, so nothing is
-/// counted twice.
-void _timeline(
-  List<Map<String, dynamic>> rows,
-  int year,
-  List<Event> out,
-  double cigPrice,
-  double teaPrice,
-) {
-  if (rows.isEmpty) return;
-  final h = _headers(rows);
-  final cDate = _col(h, ['=date', '=day', 'date']);
-  final cTime = _col(h, ['=time', 'time']);
-  final cText = _col(h, [
-    'entry',
-    'event',
-    'what',
-    'activity',
-    'log',
-    'note',
-    'text',
-    'description',
-  ]);
-  if (cDate == null || cText == null) return;
-  const tab = 'Timeline';
-  for (final r in rows) {
-    final date = legacyDate(r[cDate], year: year);
-    if (date == null) continue;
-    final text = cellStr(r[cText]);
-    final rowTime = cTime == null ? null : cellTime(r[cTime]);
-    final parsed = parseQuickLog(text, cigPrice: cigPrice, teaPrice: teaPrice)
-        .entries
-        .where((e) => e.type == EventType.sleep || e.type == EventType.wake);
-    var i = 0;
-    for (final p in parsed) {
-      // Same rule as Quick log: a stated time later than the row's time
-      // happened the day before.
-      final at = parseDate(date)!;
-      final rowMin = minutesOf(rowTime) ?? (24 * 60 - 1);
-      final built = buildEvents(
-        [p],
-        nowIst: at.add(Duration(minutes: rowMin)),
-        idFactory: () => '',
-      ).single;
-      if (p.time == null && rowTime == null) continue;
-      out.add(
-        _ev(
-          tab,
-          r['_row'],
-          '${p.type.wire}${i++}',
-          built.date,
-          p.type,
-          time: built.time,
-          approx: p.approx,
-          note: text,
-        ),
-      );
-    }
   }
 }
 

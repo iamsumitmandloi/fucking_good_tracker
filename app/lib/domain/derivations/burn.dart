@@ -27,6 +27,8 @@ class Burn extends Equatable {
   /// Σ every amount, one-offs included.
   final double? total;
   final double? delivery;
+
+  /// Delivery orders (itemised rows of one order count once).
   final int deliveryCount;
 
   /// Day-to-day minus delivery.
@@ -99,7 +101,10 @@ Burn burn(Iterable<Event> events, {required String from, required String to}) {
     dayToDay: sum(burnable),
     total: sum(paid),
     delivery: sum(delivery),
-    deliveryCount: delivery.length,
+    // Rows of one order share date + merchant (legacy notes hold the
+    // merchant); app entries count one each.
+    deliveryCount: {for (final e in delivery) '${e.date}|${e.note ?? e.id}'}
+        .length,
     other: sum(burnable) - sum(delivery),
     oneOffs: sum(nonBurn),
     oneOffLabels: labels,

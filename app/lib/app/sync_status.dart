@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/clock.dart';
+import '../core/feature_flags.dart';
 import '../core/failure_text.dart';
 import '../core/result.dart';
 import '../data/local/db.dart';
@@ -122,7 +123,10 @@ class SyncDot extends StatelessWidget {
                   width: 7,
                   height: 7,
                   decoration: BoxDecoration(
-                    color: synced ? c.accent : c.warn,
+                    // Lime = outbox empty and synced at least once.
+                    color: !synced
+                        ? c.warn
+                        : (s.lastSyncAt == null ? c.textDim : c.accent),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -150,7 +154,8 @@ class SyncBanner extends StatelessWidget {
     if (f is UnauthorisedFailure || f is NotConfiguredFailure) {
       text = describeFailure(f!);
     } else if (!s.online) {
-      text = s.pending > 0
+      // Read-only builds never send the outbox, so don't promise a sync.
+      text = s.pending > 0 && FeatureFlags.logging
           ? 'Offline · ${s.pending} saved, will sync when back'
           : 'Offline · showing saved data';
     } else if (f is ServerFailure || f is ParseFailure) {

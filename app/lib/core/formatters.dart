@@ -43,6 +43,9 @@ final _dow2 = DateFormat('EEE');
 String dayHeader(DateTime d) => _dayHeader.format(d);
 String dayShort(DateTime d) => _dayShort.format(d);
 
+/// "Wed", "Thu" … as in the v2 designs.
+String dow3(DateTime d) => _dow2.format(d);
+
 /// "We", "Th" … as in the Week design.
 String dow2(DateTime d) => _dow2.format(d).substring(0, 2);
 

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trends · Sleep and body</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8F169}a:hover{color:#E2FFA6}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0E1012; color: #EDEEF0; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex-grow: 1; padding: 24px 16px 0; display: flex; flex-direction: column; gap: 10px; min-height: 0">
+
+<div style="display: flex; justify-content: space-between; align-items: flex-end">
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.02em">Trends</h1>
+<div style="font-size: 12px; color: #A3AAB4; padding-bottom: 6px">Wed 11 – Tue 17 Nov</div>
+</div>
+<div role="tablist" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: #171A1E; border: 1px solid #2A2F36; border-radius: 12px; padding: 3px">
+<a role="tab" aria-selected="false" href="V2Smoking.dc.html" style="height: 36px; border-radius: 9px; color: #A3AAB4; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; text-decoration: none">Smoking</a>
+<a role="tab" aria-selected="true" href="V2Sleep.dc.html" style="height: 36px; border-radius: 9px; background: #2A2F36; color: #EDEEF0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; text-decoration: none">Sleep &amp; body</a>
+</div>
+
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 18px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<div style="font-size: 14px; font-weight: 600">When you slept</div>
+<div style="font-size: 11px; color: #7D858F">band = your usual bedtime</div>
+</div>
+<div style="display: flex; padding-left: 34px; padding-right: 36px; justify-content: space-between; font-size: 10px; color: #7D858F"><span>20</span><span>00</span><span>04</span><span>08</span><span>12</span></div>
+<div style="position: relative">
+<div style="position: absolute; top: 0; bottom: 0; background: rgba(57,135,229,0.14); border-left: 1px dashed #3987e5; border-right: 1px dashed #3987e5; left: {{bandLeft}}; width: {{bandWidth}}"></div>
+<sc-for list="{{nights}}" as="n" hint-placeholder-count="7">
+<div style="display: flex; align-items: center; height: 24px; position: relative">
+<div style="width: 34px; font-size: 11px; color: #A3AAB4">{{n.day}}</div>
+<div style="position: relative; width: 248px; height: 12px">
+<div style="position: absolute; top: 0; height: 12px; border-radius: 4px; background: #3987e5; left: {{n.left}}; width: {{n.width}}"></div>
+</div>
+<div style="width: 36px; text-align: right; font-size: 11px; color: #C4C9D0">{{n.hrs}}</div>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; border-top: 1px solid #22262C; padding-top: 8px">
+<div><div style="font-size: 11px; color: #A3AAB4">Average</div><div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">6.5 h</div></div>
+<div><div style="font-size: 11px; color: #A3AAB4">Bedtime spread</div><div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">±1h 39m</div></div>
+<div><div style="font-size: 11px; color: #A3AAB4">Nights 7h+</div><div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">2 of 7</div></div>
+</div>
+<div style="font-size: 13px; line-height: 1.4"><span style="font-weight: 600">Bedtime ranged 22:30 → 04:00.</span><span style="color: #A3AAB4"> Usual is about 00:45. Saturday night was the outlier.</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; color: #A3AAB4">Weight</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600">88.1 <span style="font-size: 12px; color: #7D858F; font-family: Inter, sans-serif">kg avg</span></div>
+<div style="position: relative; height: 58px; border-bottom: 1px solid #2A2F36">
+<div style="position: absolute; left: 0; right: 0; border-top: 1.5px dashed #A3AAB4; top: {{wAvgTop}}"></div>
+<sc-for list="{{weights}}" as="w" hint-placeholder-count="7"><div style="position: absolute; width: 8px; height: 8px; border-radius: 4px; background: #EDEEF0; border: 2px solid #171A1E; left: {{w.left}}; top: {{w.top}}"></div></sc-for>
+</div>
+<div style="font-size: 11px; color: #A3AAB4; line-height: 1.35">Axis 86–90 kg. 87.1 → 88.7: watch the average, not single days.</div>
+</div>
+<div style="background: #171A1E; border: 1px solid #2A2F36; border-radius: 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; color: #A3AAB4">Steps</div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600">9.8k <span style="font-size: 12px; color: #7D858F; font-family: Inter, sans-serif">avg</span></div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; align-items: end; height: 58px; border-bottom: 1px solid #2A2F36">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="7"><div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 58px"><div style="width: 100%; border-radius: 3px 3px 0 0; background: {{s.c}}; height: {{s.h}}"></div></div></sc-for>
+</div>
+<div style="font-size: 11px; color: #A3AAB4; line-height: 1.35">Sat not logged. Sun 2,096, the low.</div>
+</div>
+</div>
+</div>
+<nav aria-label="Main" style="height: 72px; border-top: 1px solid #22262C; background: #0E1012; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 0 6px; flex-shrink: 0">
+<a href="V2Day.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navDay}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>Day</a>
+<a href="V2Week.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navWeek}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>Week</a>
+<a href="V2Smoking.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navTrends}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>Trends</a>
+<a href="V2Money.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navMoney}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M6 9h12M6 4h3a5 5 0 0 1 0 10H6l8 6"></path></svg>Money</a>
+<a href="V2Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{navInsights}}; text-decoration: none; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"></path></svg>Insights</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const W = 248, SPAN = 960;
+    const x = (m) => Math.round(m / SPAN * W);
+    const raw = [['W 11', 240, 600, '6h'], ['T 12', 270, 726, '7.6h'], ['F 13', 240, 600, '6h'], ['S 14', 240, 600, '6h'], ['S 15', 480, 847, '6.1h'], ['M 16', 360, 720, '6h'], ['T 17', 150, 600, '7.5h']];
+    const nights = raw.map((r) => ({ day: r[0], left: x(r[1]) + 'px', width: (x(r[2]) - x(r[1])) + 'px', hrs: r[3] }));
+    const kg = [87.1, 88, 88.5, 88.1, 88.5, 88.7, 87.91];
+    const y = (v) => Math.round((90 - v) / 4 * 50);
+    const weights = kg.map((v, i) => ({ left: Math.round(i / 6 * 130) + 'px', top: (y(v) - 4) + 'px' }));
+    const st = [6500, 6500, 16000, null, 2096, 12576, 15000];
+    const steps = st.map((v) => ({ h: v == null ? '2px' : Math.round(v / 16000 * 56) + 'px', c: v == null ? '#2A2F36' : '#3987e5' }));
+    return {
+      nights: nights, weights: weights, steps: steps,
+      bandLeft: (34 + x(184)) + 'px', bandWidth: (x(382) - x(184)) + 'px',
+      wAvgTop: y(88.12) + 'px',
+      navDay: '#A3AAB4', navWeek: '#A3AAB4', navTrends: '#C8F169', navMoney: '#A3AAB4', navInsights: '#A3AAB4'
+    };
+  }
+}
+</script>
+</body>
+</html>

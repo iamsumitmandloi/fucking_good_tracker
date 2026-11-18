@@ -3,10 +3,12 @@ import 'package:material_ui/material_ui.dart';
 import 'app_colors.dart';
 import 'app_dims.dart';
 import 'app_text.dart';
+import 'series_colors.dart';
 
 export 'app_colors.dart';
 export 'app_dims.dart';
 export 'app_text.dart';
+export 'series_colors.dart';
 
 ThemeData buildTheme({FontApplier? display, FontApplier? body}) {
   const c = AppColors.dark;
@@ -57,7 +59,7 @@ ThemeData buildTheme({FontApplier? display, FontApplier? body}) {
       ),
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(color: c.accent),
-    extensions: [c, t, AppDims.standard],
+    extensions: [c, t, AppDims.standard, SeriesColors.standard],
   );
 }
 
@@ -65,4 +67,5 @@ extension ThemeX on BuildContext {
   AppColors get colors => Theme.of(this).extension<AppColors>()!;
   AppText get text => Theme.of(this).extension<AppText>()!;
   AppDims get dims => Theme.of(this).extension<AppDims>()!;
+  SeriesColors get series => Theme.of(this).extension<SeriesColors>()!;
 }
