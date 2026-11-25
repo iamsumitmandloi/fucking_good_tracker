@@ -80,3 +80,7 @@ Format: date · what · why · evidence.
 53. **Default supplements & alias matching (`settings_repository.dart`, `daily_stats.dart`).** Seeded default `AppSettings.supplements` to `['Vitamin D3 + K2', 'Vitamin B-complex', 'Omega-3', 'Ashwagandha']`, with `supplementKey()` canonical matching for sheet label variants (e.g. `"Vitamin D3 and K2"`, `"Neurokind (vitamin B)"`) and case-insensitive protein unit `g`.
 54. **Overnight bus arrives (`commute.dart`).** Early-morning `< 04:00` `bus_arrive` events pair with an open `bus_board` on the prior day.
 55. **`ParseResult.toEvents()` + `km` exercise + bus destination notes (`parser.dart`).** Added `toEvents()` helper (separate paired `spend` row), `km` exercise unit support, and `to office`/`home` bus notes while preserving `build_events.dart` and legacy keyword categories.
+
+## 2026-11-25 (Voice Logging Phase V0)
+
+56. **Voice logging packages & Android `minSdk` (`app/pubspec.yaml`, `app/android/app/build.gradle.kts`).** Added `sherpa_onnx: ^2.0.3` (`2.0.3`) and `record: ^7.2.0` (`7.2.0`, `record_android 2.3.0`, `record_darwin 2.0.0`) via `flutter pub add`. Set `minSdk = maxOf(flutter.minSdkVersion, 24)` because `record_android` 2.3.0 requires `minSdk = 24` (while `sherpa_onnx_android_*` 2.0.3 requires `21`). Locked shared contracts in `app/lib/domain/voice/voice_contracts.dart` and added `AppIcons.mic`, Android `RECORD_AUDIO`, and iOS `NSMicrophoneUsageDescription`.

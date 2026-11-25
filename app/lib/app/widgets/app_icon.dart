@@ -24,6 +24,7 @@ enum AppIcons {
   trends,
   insights,
   chevronLeft,
+  mic,
 }
 
 class AppIcon extends StatelessWidget {
@@ -288,6 +289,19 @@ List<Path> _paths(AppIcons icon) {
     case AppIcons.chevronLeft:
       return [
         _line([15, 6, 9, 12, 15, 18]),
+      ];
+    case AppIcons.mic:
+      return [
+        _rrect(9, 3, 6, 11, 3),
+        Path()
+          ..moveTo(5, 11)
+          ..arcToPoint(
+            const Offset(19, 11),
+            radius: const Radius.circular(7),
+            clockwise: false,
+          ),
+        _line([12, 18, 12, 21]),
+        _line([8, 21, 16, 21]),
       ];
   }
 }
