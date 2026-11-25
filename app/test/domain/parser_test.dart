@@ -375,7 +375,58 @@ void main() {
       expect(categoryFor('Swiggy order'), SpendCategory.delivery);
       expect(categoryFor('auto to office'), SpendCategory.transport);
       expect(categoryFor('haircut'), SpendCategory.grooming);
+      expect(categoryFor('medicine'), SpendCategory.health);
+      expect(categoryFor('airtel recharge'), SpendCategory.bills);
       expect(categoryFor('random thing'), SpendCategory.other);
     });
+  });
+
+  group('sheet-aligned parser additions', () {
+    test('"walked 7.2 km" keeps km unit', () {
+      final e = one('walked 7.2 km');
+      expect(e.type, EventType.exercise);
+      expect(e.qty, 7.2);
+      expect(e.unit, 'km');
+    });
+
+    test('bus notes detect to office and home', () {
+      final arr = one('office reached 10:40');
+      expect(arr.type, EventType.busArrive);
+      expect(arr.note, 'to office');
+
+      final home = one('board home at 19:30');
+      expect(home.type, EventType.busBoard);
+      expect(home.note, 'home');
+    });
+
+    test(
+      'toEvents emits separate spend row per payment & handles past-midnight',
+      () {
+        var seq = 0;
+        final res = parse('1 cig + tea 45');
+        final events = res.toEvents(
+          nowIst: DateTime.utc(2026, 11, 25, 18, 2),
+          nextId: () => 'id-${++seq}',
+        );
+        expect(events.length, 4);
+        expect(events[0].type, EventType.cigarette);
+        expect(events[0].amountInr, isNull);
+        expect(events[1].type, EventType.spend);
+        expect(events[1].amountInr, 25);
+        expect(events[1].category, SpendCategory.tobacco);
+        expect(events[2].type, EventType.tea);
+        expect(events[2].amountInr, isNull);
+        expect(events[3].type, EventType.spend);
+        expect(events[3].amountInr, 20);
+        expect(events[3].category, SpendCategory.tea);
+
+        final slept = parse('slept 23:30').toEvents(
+          nowIst: DateTime.utc(2026, 11, 25, 8, 0),
+          nextId: () => 'id-${++seq}',
+        );
+        expect(slept.single.date, '2026-11-24');
+        expect(slept.single.time, '23:30');
+      },
+    );
   });
 }

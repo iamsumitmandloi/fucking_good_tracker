@@ -37,7 +37,34 @@ bool cellBool(Object? v) {
   return cellStr(v).toLowerCase() == 'true';
 }
 
-/// `yyyy-MM-dd` passes through. `d/M/yyyy` (sheet locale) is normalised.
+const _months = <String, int>{
+  'jan': 1,
+  'january': 1,
+  'feb': 2,
+  'february': 2,
+  'mar': 3,
+  'march': 3,
+  'apr': 4,
+  'april': 4,
+  'may': 5,
+  'jun': 6,
+  'june': 6,
+  'jul': 7,
+  'july': 7,
+  'aug': 8,
+  'august': 8,
+  'sep': 9,
+  'sept': 9,
+  'september': 9,
+  'oct': 10,
+  'october': 10,
+  'nov': 11,
+  'november': 11,
+  'dec': 12,
+  'december': 12,
+};
+
+/// `yyyy-MM-dd` passes through. `d/M/yyyy` and `30 November 2026` are normalised.
 String? cellDate(Object? v) {
   final s = cellStr(v);
   if (s.isEmpty) return null;
@@ -47,6 +74,14 @@ String? cellDate(Object? v) {
   if (m != null) {
     final d = parseDate('${m[3]}-${m[2]}-${m[1]}');
     if (d != null) return formatDate(d);
+  }
+  final named = RegExp(r'^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$').firstMatch(s);
+  if (named != null) {
+    final mo = _months[named[2]!.toLowerCase()];
+    if (mo != null) {
+      final d = parseDate('${named[3]}-$mo-${named[1]}');
+      if (d != null) return formatDate(d);
+    }
   }
   return null;
 }

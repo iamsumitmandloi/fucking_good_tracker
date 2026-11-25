@@ -94,12 +94,13 @@ app/test/   mirrors lib/ (unit + widget); fixtures built in Dart, real-data fixt
 | Metric | Computation |
 |---|---|
 | Cig count today | Σ qty of `cigarette` for today (qty empty → 1). Warn colour when > budget (Settings, default 5). |
-| Tea / water / protein | Σ `tea` qty; Σ `water_ml` qty (shown in L, "—" if no event); `meal`/`snack` with unit `g` + label "protein" for breakfast protein, "—" if none. |
-| Supplements x/N | distinct `supplement` labels today ∩ Settings list. |
+| Tea / water / protein | Σ `tea` qty; Σ `water_ml` qty (shown in L, "—" if no event); `meal`/`snack` with unit `g` (case-insensitive) for breakfast protein, "—" if none. |
+| Steps | `max` of `steps` qty for today (matching sheet `MAXIFS`). |
+| Supplements x/N | normalised distinct `supplement` labels today ∩ Settings list (default 4 from Supplement Reference). |
 | Bus legs | today's `bus_board`/`bus_arrive` sorted by time; each board pairs with the next arrive. Leg = arrive − board (across midnight if negative +24 h). Last event board → state Riding (CTA "Arrived"); 1 completed leg → CTA "Board home"; 2 → "Done" (disabled). Total = Σ completed legs. |
-| Sleep window | per `sleep` event (time = bedtime, date = calendar date of bedtime) → first `wake` after it within 18 h. Row labelled by wake date. Approx if either approx. Orange when bedtime ≥ 02:00 and < 12:00. |
-| Spent today | Σ `amount_inr` of today's events (all types). |
-| Daily burn | Σ amount where category ∉ {bills, one_off} ÷ days in range (7). Split: delivery / everything else / one-offs (bills + one_off). |
+| Sleep window | per `sleep` event (time = bedtime, date = calendar date of bedtime) → first `wake` after it within 18 h, or `sleep.end_time` fallback (`wakeDate = date` if `end_time >= bed`, else `+1 day`). Row labelled by wake date. Approx if either approx. Orange when bedtime ≥ 02:00 and < 12:00. |
+| Spent today | Σ `amount_inr` of today's events (app writes a separate `spend` row per payment per sheet rule). |
+| Daily burn | Σ amount where category ∉ {bills, one_off} ÷ days in range (7). Split: delivery (`food_delivery`, `quick_commerce`, `delivery`) / everything else / one-offs (`bills` + `one_off`). |
 | Pay later | Σ amount where source = `lazypay` in range. |
 | Weight | dots per day (last weight that day); 7-day avg = mean of days that have a value; axis = [floor(min)-…] widened to ≥ 4 kg span, centred on the avg. |
 | Not logged | per metric: days in range with ≥ 1 event / 7, orange when 0. |
@@ -113,8 +114,8 @@ app/test/   mirrors lib/ (unit + widget); fixtures built in Dart, real-data fixt
 
 ## 4. Risks
 
-1. **Legacy column shapes unknown** until the live read (fixture absent). Mitigation: Phase 0 live read records headers; the legacy adapter is written against real rows.
-2. **Expected real numbers (48 cigs, ₹10,616.79) must come from legacy tabs** for 11–17 Nov, since Events is near-empty. If the legacy text is ambiguous, numbers may drift. Mitigation: tests pin each day; any mismatch is investigated, not patched.
+1. **Legacy tabs superseded by `Events` backfill.** `Events` now holds 453 rows across `2026-11-11`–`2026-11-24`, and `Today` row 17 states `Daily Summary`, `Timeline`, and `Spending` are historical snapshots. Risk of missing 11–17 Nov data is resolved.
+2. **Sheet formula parity:** `Today` & `Daily Review` sum `amount_inr` only where `type = "spend"`. Mitigation: app writes `spend` rows separately from activity rows ("One event for each activity. One spend event for each payment.").
 3. **Apps Script latency 1–3 s and occasional HTML error pages** (non-JSON 200). Mitigation: parse failure → typed `Failure.server`, outbox keeps rows.
 4. **Clock/timezone**: device may not be IST. Mitigation: `Clock` converts to Asia/Kolkata (+05:30 fixed, no DST) for `date`/`time`.
 5. **Study Bank size (501 rows)** on every Study open. Mitigation: cache in drift; refresh only on pull or when older than 6 h.

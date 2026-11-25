@@ -1,7 +1,7 @@
 # PROGRESS
 
-**Current phase:** 7 (read-only viewer, `handoff_v2/`) **done, 7.0–7.4**. Phase 6 dropped by the owner (18 Nov). Phases 0–5 done.
-**Last update:** 2026-11-18 IST
+**Current phase:** 7 (read-only viewer, `handoff_v2/`) **done, 7.0–7.4**. Phase 6 dropped by the owner (18 Nov). Phases 0–5 done; 2026-11-25 sheet-alignment fixes merged in.
+**Last update:** 2026-11-25 IST
 **Mode:** real `secrets.json` (owner, 17 Nov). Phase 7 makes no writes to the sheet at all; every live call in it was a GET of `tabs=Events`.
 **Plan:** `PLAN_v2.md`. Brief: `handoff_v2/AGENT_PROMPT_v2.md` (copied into the repo from the owner's Downloads).
 
@@ -38,6 +38,7 @@
 - `DEV_IDS` build flag (`--dart-define=DEV_IDS=true`): every new id gets `dev-` for live checks (DECISIONS 19)
 - Tests (+109 → 165 total): parser 61 cases, derivations 16, build_events/usuals 17, Today cubit 10 incl. the gate, Today widgets 3
 - Gate: green ✅ fake-server gate test: 5 mixed entries offline → flush fails, outbox 5 → reconnect → one POST, 5 `dev-` rows, second flush + refresh add nothing · live airplane-mode run → **owner**
+- 2026-11-25 sheet-alignment merge: `sleep.dart` (`sleep.endTime` fallback), `daily_stats.dart` (`steps` max, case-insensitive `g` protein, `supplementKey` matching), `commute.dart` (overnight `< 04:00` arrive pairing), `cells.dart` (`"30 November 2026"` date format), `event_type.dart` (`activity`, live `SpendCategory`, `deliveryLike`), `settings_repository.dart` (default 4 supplements), `parser.dart` (`toEvents`, `km` exercise, bus notes), `burn.dart` (`deliveryLike`).
 
 ## Phase 4: Week + Money + legacy adapter ✅
 - Domain: `derivations/burn.dart` (day-to-day burn excl. bills/one_off, delivery / everything else / one-offs split, pay later = lazypay), `derivations/weight.dart` (last per day, avg of days with a value, axis ≥ 4 kg centred on the rounded avg), `derivations/week.dart` (7 days ending today, cig bars with null gaps, sleep rows on the 21:00→11:00 track, not-logged counts)

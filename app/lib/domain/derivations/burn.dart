@@ -89,7 +89,9 @@ Burn burn(Iterable<Event> events, {required String from, required String to}) {
   final burnable = paid.where(
     (e) => !SpendCategory.nonBurn.contains(e.category),
   );
-  final delivery = burnable.where((e) => e.category == SpendCategory.delivery);
+  final delivery = burnable.where(
+    (e) => SpendCategory.deliveryLike.contains(e.category),
+  );
   final lazy = paid.where((e) => e.source == 'lazypay');
   final labels = <String>[];
   for (final e in nonBurn) {

@@ -96,8 +96,7 @@ class TodayState extends Equatable {
     return BusAction.board;
   }
 
-  int get suppsTaken =>
-      settings.supplements.where(summary.supplements.contains).length;
+  int get suppsTaken => summary.supplementsMatched(settings.supplements);
 
   TodayState copyWith({
     bool? loaded,
@@ -330,9 +329,13 @@ class TodayCubit extends Cubit<TodayState> {
 
   /// Ticks a supplement; unticking undoes today's entries for it.
   Future<void> toggleSupplement(String name) async {
+    final want = supplementKey(name);
     final taken = [
       for (final e in state.todayEvents)
-        if (e.type == EventType.supplement && e.label == name) e.id,
+        if (e.type == EventType.supplement &&
+            e.label != null &&
+            supplementKey(e.label!) == want)
+          e.id,
     ];
     if (taken.isEmpty) {
       await logAll([_now(EventType.supplement, label: name)]);

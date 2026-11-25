@@ -55,17 +55,43 @@ class CommuteDay extends Equatable {
   List<Object?> get props => [legs];
 }
 
-/// Pairs each `bus_board` with the next `bus_arrive` on [date].
+/// Pairs each `bus_board` with the next `bus_arrive` on [date] (and if the last
+/// board on [date] is still open, checks early-morning `< 04:00` arrives on the
+/// next day).
 CommuteDay commuteFor(Iterable<Event> effective, String date) {
-  final bus =
+  final allBus =
       effective
           .where(
             (e) =>
-                e.date == date &&
-                (e.type == EventType.busBoard || e.type == EventType.busArrive),
+                e.type == EventType.busBoard || e.type == EventType.busArrive,
           )
           .toList()
         ..sort(compareEvents);
+  final prevDate = addDays(date, -1);
+  final nextDate = addDays(date, 1);
+
+  // Check if an early-morning (< 04:00) arrive on `date` closed yesterday's leg.
+  final prevDay = allBus.where((e) => e.date == prevDate).toList();
+  final prevHasOpenBoard =
+      prevDay.isNotEmpty && prevDay.last.type == EventType.busBoard;
+
+  final bus = <Event>[];
+  var consumedPrevMorningArrive = false;
+  for (final e in allBus) {
+    if (e.date != date) continue;
+    final m = minutesOf(e.time);
+    if (!consumedPrevMorningArrive &&
+        prevHasOpenBoard &&
+        e.type == EventType.busArrive &&
+        m != null &&
+        m < 4 * 60 &&
+        bus.isEmpty) {
+      consumedPrevMorningArrive = true;
+      continue;
+    }
+    bus.add(e);
+  }
+
   final legs = <BusLeg>[];
   for (final e in bus) {
     if (e.type == EventType.busBoard) {
@@ -83,6 +109,27 @@ CommuteDay commuteFor(Iterable<Event> effective, String date) {
       );
     } else {
       legs.add(BusLeg(arrive: e.time, approx: e.approx));
+    }
+  }
+
+  // If still riding at the end of `date`, see if an early-morning arrive on
+  // `date + 1` closed this leg.
+  if (legs.isNotEmpty && legs.last.arrive == null && legs.last.board != null) {
+    for (final e in allBus) {
+      if (e.date != nextDate) continue;
+      if (e.type == EventType.busBoard) break;
+      final m = minutesOf(e.time);
+      if (e.type == EventType.busArrive && m != null && m < 4 * 60) {
+        final open = legs.removeLast();
+        legs.add(
+          BusLeg(
+            board: open.board,
+            arrive: e.time,
+            approx: open.approx || e.approx,
+          ),
+        );
+      }
+      break;
     }
   }
   return CommuteDay(legs);

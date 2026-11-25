@@ -83,7 +83,7 @@ class ParsedEntry extends Equatable {
       EventType.busArrive => t('Got off the bus'),
       EventType.steps => '${trimNum(qty, digits: 0)} steps',
       EventType.exercise =>
-        '${label ?? 'Exercise'}${qty == null ? '' : ' ${trimNum(qty)} min'}',
+        '${label ?? 'Exercise'}${qty == null ? '' : ' ${trimNum(qty)} ${unit ?? 'min'}'}',
       EventType.energy => 'Energy ${trimNum(qty)}/10',
       EventType.mood => 'Mood ${trimNum(qty)}/10',
       EventType.supplement => 'Supplement · ${label ?? ''}',
@@ -94,6 +94,17 @@ class ParsedEntry extends Equatable {
       EventType.note => 'Note: "${note ?? raw}"',
       _ => label ?? type.wire,
     };
+  }
+
+  /// Label used on the paired `spend` event when this entry has an amount.
+  String get spendLabel {
+    if (type == EventType.cigarette) {
+      final n = qty ?? 1;
+      return n == 1 ? '1 cigarette' : '${trimNum(n)} cigarettes';
+    }
+    if (type == EventType.tea) return 'Tea';
+    if (type == EventType.coffee) return 'Coffee';
+    return label ?? title;
   }
 
   @override
@@ -120,9 +131,84 @@ class ParseResult {
   final double? splitTotal;
 
   double? get total {
-    final paid = entries.where((e) => e.amount != null);
+    final paid = entries.where((e) => e.amount != null && e.amount! > 0);
     if (paid.isEmpty) return null;
     return paid.fold<double>(0, (a, e) => a + e.amount!);
+  }
+
+  /// Materialise into sheet `Event`s following the sheet's rule:
+  /// "One event for each activity. One spend event for each payment."
+  List<Event> toEvents({
+    required DateTime nowIst,
+    required String Function() nextId,
+    String? overrideDate,
+    String? overrideTime,
+    bool approxOverride = false,
+  }) {
+    final nowDate = formatDate(nowIst);
+    final nowTime = formatTime(nowIst);
+    final nowMin = nowIst.hour * 60 + nowIst.minute;
+    final out = <Event>[];
+    for (final e in entries) {
+      final t = e.time ?? overrideTime ?? nowTime;
+      var d = overrideDate ?? nowDate;
+      // If the user typed an explicit time later than now (e.g. "slept 23:30"
+      // logged at 08:00), assume yesterday unless a date was explicitly chosen.
+      if (overrideDate == null && e.time != null) {
+        final m = minutesOf(e.time);
+        if (m != null && m > nowMin + 5) {
+          d = addDays(nowDate, -1);
+        }
+      }
+      final approx = e.approx || approxOverride;
+      if (e.type == EventType.spend) {
+        out.add(
+          Event(
+            id: nextId(),
+            date: d,
+            time: t,
+            type: EventType.spend,
+            label: e.label,
+            amountInr: e.amount,
+            category: e.category ?? SpendCategory.other,
+            approx: approx,
+            source: e.source,
+            note: e.note,
+          ),
+        );
+        continue;
+      }
+      out.add(
+        Event(
+          id: nextId(),
+          date: d,
+          time: t,
+          type: e.type,
+          qty: e.qty,
+          unit: e.unit,
+          label: e.label,
+          approx: approx,
+          source: e.source,
+          note: e.note,
+        ),
+      );
+      if (e.amount != null && e.amount! > 0) {
+        out.add(
+          Event(
+            id: nextId(),
+            date: d,
+            time: t,
+            type: EventType.spend,
+            label: e.spendLabel,
+            amountInr: e.amount,
+            category: e.category ?? SpendCategory.other,
+            approx: approx,
+            source: e.source,
+          ),
+        );
+      }
+    }
+    return out;
   }
 }
 
@@ -150,7 +236,7 @@ final _wakeRe = RegExp(
   '^(?:woke(?: up)?|wake(?: up)?|up|awake)\\s*(?:at\\s*)?(?:$_timeOrHour)\$',
 );
 final _boardRe = RegExp(
-  '^(?:board(?:ed)?|on (?:the )?bus|got on(?: the)? bus|bus)'
+  '^(?:bus\\s+board(?:ed)?|board(?:ed)?(?:\\s+(?:the\\s+)?bus)?|on (?:the )?bus|got on(?: the)? bus|bus)'
   '(?:\\s+(?:to\\s+)?(?:office|home|work))?\\s*(?:at\\s*)?(?:$_time)?\$',
 );
 final _arriveRe = RegExp(
@@ -171,7 +257,7 @@ final _proteinRe = RegExp(
 );
 final _exerciseRe = RegExp(
   r'^(walk(?:ed)?|gym|run|ran|jog(?:ged)?|exercise|workout|yoga|cycl(?:ing|ed))'
-  r'\s*(\d+)?\s*(?:min|mins|minutes|m)?$',
+  r'\s*(\d+(?:\.\d+)?)?\s*(km|min|mins|minutes|m)?$',
 );
 final _cigRe = RegExp(
   '^(\\d+)?\\s*(?:cigs?|cigarettes?|smokes?|sutta|ciggies?)'
@@ -194,7 +280,7 @@ final _trailingAmtRe = RegExp('^(.*?)\\s*$_amt\$');
 const _categoryWords = <String, List<String>>{
   SpendCategory.delivery: [
     'zomato', 'swiggy', 'zepto', 'blinkit', 'instamart', 'bigbasket', //
-    'dunzo', 'delivery', 'order',
+    'dunzo', 'dominos', "domino's", 'delivery', 'order',
   ],
   SpendCategory.canteen: ['canteen', 'mess', 'office food'],
   SpendCategory.streetFood: [
@@ -203,7 +289,7 @@ const _categoryWords = <String, List<String>>{
   ],
   SpendCategory.groceries: [
     'grocery', 'groceries', 'milk', 'eggs', 'bread', 'vegetables', //
-    'veggies', 'fruit', 'dmart', 'whey',
+    'veggies', 'fruit', 'bananas', 'dmart', 'whey',
   ],
   SpendCategory.transport: [
     'auto', 'uber', 'ola', 'rapido', 'metro', 'ticket', 'cab', 'fuel', //
@@ -217,14 +303,10 @@ const _categoryWords = <String, List<String>>{
     'one-off', 'one off',
   ],
   SpendCategory.bills: [
-    'bill',
-    'electricity',
-    'recharge',
-    'rent',
-    'wifi',
-    'internet',
-    'emi',
+    'bill', 'electricity', 'recharge', 'rent', 'wifi', 'internet', 'emi', //
+    'airtel',
   ],
+  SpendCategory.health: ['medicine', 'tablets', 'pharmacy', 'doctor', 'ors'],
   SpendCategory.tobacco: [
     'lighter', 'pack', 'packet', 'cig', 'cigs', 'cigarette', 'cigarettes', //
   ],
@@ -391,10 +473,18 @@ bool _isHabit(ParsedEntry e) =>
     return (e(EventType.wake, time: _timeFrom(m!, 1)), false);
   }
   if ((m = _boardRe.firstMatch(s)) != null) {
-    return (e(EventType.busBoard, time: _timeFrom(m!, 1)), false);
+    final dest = _busNote(s);
+    return (
+      e(EventType.busBoard, label: 'Bus', time: _timeFrom(m!, 1), note: dest),
+      false,
+    );
   }
   if ((m = _arriveRe.firstMatch(s)) != null) {
-    return (e(EventType.busArrive, time: _timeFrom(m!, 1)), false);
+    final dest = _busNote(s);
+    return (
+      e(EventType.busArrive, label: 'Bus', time: _timeFrom(m!, 1), note: dest),
+      false,
+    );
   }
 
   // "tea at 16:30": peel the time off, then parse the rest.
@@ -487,14 +577,10 @@ bool _isHabit(ParsedEntry e) =>
       'cycled' => 'Cycling',
       _ => _cap(kind),
     };
+    final qty = _num(m.group(2));
+    final unit = m.group(3) == 'km' ? 'km' : (qty == null ? null : 'min');
     return (
-      e(
-        EventType.exercise,
-        qty: _num(m.group(2)),
-        unit: 'min',
-        label: label,
-        time: at,
-      ),
+      e(EventType.exercise, qty: qty, unit: unit, label: label, time: at),
       false,
     );
   }
@@ -586,14 +672,17 @@ bool _isHabit(ParsedEntry e) =>
   if ((m = _textAmountRe.firstMatch(s)) != null) {
     final text = m!.group(1)!.trim();
     final cat = categoryFor(text);
-    final street = cat == SpendCategory.streetFood;
+    final isSnack =
+        cat == SpendCategory.streetFood ||
+        cat == SpendCategory.foodOut ||
+        cat == SpendCategory.drinks;
     return (
       e(
-        street ? EventType.snack : EventType.spend,
+        isSnack ? EventType.snack : EventType.spend,
         label: _cap(text),
         amount: _num(m.group(2)),
         category: cat,
-        note: street ? 'snack' : null,
+        note: isSnack ? 'snack' : null,
         time: at,
       ),
       true,
@@ -609,4 +698,10 @@ bool _isHabit(ParsedEntry e) =>
     ),
     false,
   );
+}
+
+String? _busNote(String s) {
+  if (RegExp(r'\b(office|work)\b').hasMatch(s)) return 'to office';
+  if (RegExp(r'\bhome\b').hasMatch(s)) return 'home';
+  return null;
 }

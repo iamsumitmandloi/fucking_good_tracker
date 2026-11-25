@@ -10,6 +10,7 @@ import 'package:starting_again/data/repo/legacy_repository.dart';
 import 'package:starting_again/data/repo/settings_repository.dart';
 import 'package:starting_again/data/repo/study_repository.dart';
 import 'package:starting_again/data/sync/sync_service.dart';
+import 'package:starting_again/domain/event_type.dart';
 import 'package:starting_again/features/quicklog/quicklog_cubit.dart';
 import 'package:starting_again/features/today/today_cubit.dart';
 
@@ -30,6 +31,7 @@ Map<String, dynamic> row(
   String type, {
   String amount = '',
   String approx = 'FALSE',
+  String label = '',
 }) => {
   '_row': 2,
   'id': id,
@@ -39,7 +41,7 @@ Map<String, dynamic> row(
   'type': type,
   'qty': '',
   'unit': '',
-  'label': '',
+  'label': label,
   'amount_inr': amount,
   'category': '',
   'approx': approx,
@@ -170,16 +172,31 @@ void main() {
       expect(cubit.state.overCigBudget, isTrue);
     });
 
-    test('supplement checklist: tick logs, untick undoes', () async {
-      await settings.save(const AppSettings(supplements: ['D3', 'Omega 3']));
-      await makeCubit();
-      await until(cubit, (s) => s.settings.supplements.length == 2);
-      await cubit.toggleSupplement('D3');
-      await until(cubit, (s) => s.suppsTaken == 1);
-      await cubit.toggleSupplement('D3');
-      await until(cubit, (s) => s.suppsTaken == 0);
-      expect(await outbox(), isEmpty);
-    });
+    test(
+      'supplement checklist: tick logs, untick undoes, variants match',
+      () async {
+        await settings.save(
+          const AppSettings(supplements: ['Vitamin D3 + K2', 'Omega-3']),
+        );
+        await events.mergeServerRows([
+          row(
+            'sup-sheet',
+            '2026-11-17',
+            '08:00',
+            EventType.supplement.wire,
+            label: 'Vitamin D3 and K2',
+          ),
+        ]);
+        await makeCubit();
+        await until(cubit, (s) => s.settings.supplements.length == 2);
+        expect(cubit.state.suppsTaken, 1);
+        await cubit.toggleSupplement('Omega-3');
+        await until(cubit, (s) => s.suppsTaken == 2);
+        await cubit.toggleSupplement('Omega-3');
+        await until(cubit, (s) => s.suppsTaken == 1);
+        expect(await outbox(), isEmpty);
+      },
+    );
   });
 
   group('bus legs', () {

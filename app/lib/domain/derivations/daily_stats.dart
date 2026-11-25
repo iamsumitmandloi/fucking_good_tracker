@@ -7,7 +7,29 @@ import '../event_type.dart';
 const proteinLabel = 'Breakfast protein';
 
 bool isProtein(Event e) =>
-    (e.type == EventType.meal || e.type == EventType.snack) && e.unit == 'g';
+    (e.type == EventType.meal || e.type == EventType.snack) &&
+    e.unit?.toLowerCase() == 'g';
+
+/// Canonical key for comparing supplement names across sheet variants
+/// (e.g. "Vitamin D3 and K2" vs "Vitamin D3 + K2", "Vitamin B (B-complex)" vs "Vitamin B-complex").
+String supplementKey(String label) {
+  final s = label.toLowerCase().trim();
+  if (s.contains('d3') && s.contains('k2')) return 'vitamind3k2';
+  if (s.contains('b-complex') ||
+      s.contains('b complex') ||
+      s.contains('vitamin b') ||
+      s.contains('becosules') ||
+      s.contains('neurokind')) {
+    return 'vitaminbcomplex';
+  }
+  if (s.contains('omega')) return 'omega3';
+  if (s.contains('ashwagandha')) return 'ashwagandha';
+  if (s.contains('magnesium')) return 'magnesiumglycinate';
+  if (s.contains('creatine')) return 'creatine';
+  if (s.contains('tyrosine')) return 'ltyrosine';
+  if (s.contains('theanine')) return 'ltheanine';
+  return s.replaceAll(RegExp(r'[^a-z0-9]'), '');
+}
 
 /// One day's numbers. Every metric is null when nothing was logged.
 class DaySummary extends Equatable {
@@ -47,6 +69,14 @@ class DaySummary extends Equatable {
 
   Event? get lastMeal => meals.isEmpty ? null : meals.last;
 
+  bool hasSupplement(String name) {
+    final want = supplementKey(name);
+    return supplements.any((s) => supplementKey(s) == want);
+  }
+
+  int supplementsMatched(List<String> configured) =>
+      configured.where(hasSupplement).length;
+
   @override
   List<Object?> get props => [
     date,
@@ -70,6 +100,16 @@ class DaySummary extends Equatable {
 double? _sum(Iterable<Event> es, double Function(Event) f) =>
     es.isEmpty ? null : es.fold<double>(0, (a, e) => a + f(e));
 
+double? _max(Iterable<Event> es, double Function(Event) f) {
+  if (es.isEmpty) return null;
+  var best = f(es.first);
+  for (final e in es.skip(1)) {
+    final v = f(e);
+    if (v > best) best = v;
+  }
+  return best;
+}
+
 /// [effective] must already exclude dev rows and voids.
 DaySummary summarize(Iterable<Event> effective, String date) {
   final day = effective.where((e) => e.date == date).toList()
@@ -86,7 +126,7 @@ DaySummary summarize(Iterable<Event> effective, String date) {
     waterMl: _sum(of(EventType.waterMl), (e) => e.qty ?? 250),
     proteinG: _sum(day.where(isProtein), (e) => e.qty ?? 0),
     weightKg: weights.isEmpty ? null : weights.last.qty,
-    steps: _sum(of(EventType.steps).where((e) => e.qty != null), (e) => e.qty!),
+    steps: _max(of(EventType.steps).where((e) => e.qty != null), (e) => e.qty!),
     energy: energy.isEmpty ? null : energy.last.qty,
     meals: [
       for (final e in day)

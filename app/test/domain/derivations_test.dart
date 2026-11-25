@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:starting_again/core/cells.dart';
 import 'package:starting_again/domain/derivations/commute.dart';
 import 'package:starting_again/domain/derivations/daily_stats.dart';
 import 'package:starting_again/domain/derivations/sleep.dart';
@@ -11,6 +12,7 @@ Event ev(
   EventType type,
   String date,
   String? time, {
+  String? endTime,
   double? qty,
   String? unit,
   String? label,
@@ -23,6 +25,7 @@ Event ev(
   id: id ?? 'e${_n++}',
   date: date,
   time: time,
+  endTime: endTime,
   type: type,
   qty: qty,
   unit: unit,
@@ -210,6 +213,112 @@ void main() {
           ev(EventType.tea, '2026-11-11', null),
         ]),
         '2026-11-11',
+      );
+    });
+  });
+
+  group('sheet alignment', () {
+    test('cellDate parses ISO, d/M/yyyy, and month-name dates', () {
+      expect(cellDate('2026-11-30'), '2026-11-30');
+      expect(cellDate('30/11/2026'), '2026-11-30');
+      expect(cellDate('30 November 2026'), '2026-11-30');
+      expect(cellDate('5 Dec 2026'), '2026-12-05');
+      expect(cellDate('not a date'), isNull);
+    });
+
+    test('Event.fromSheetRow retains read-only activity type', () {
+      final e = Event.fromSheetRow({
+        'id': 'movie-20261121',
+        'date': '2026-11-21',
+        'time': '18:00',
+        'end_time': '23:00',
+        'type': 'activity',
+        'qty': '5',
+        'unit': 'h',
+        'label': 'Movie outing',
+        'category': 'entertainment',
+        'approx': 'TRUE',
+      });
+      expect(e, isNotNull);
+      expect(e!.type, EventType.activity);
+      expect(e.endTime, '23:00');
+    });
+
+    test('sleepWindows falls back to sleep.endTime without wake row', () {
+      final w = sleepWindows([
+        ev(
+          EventType.sleep,
+          '2026-11-16',
+          '02:00',
+          endTime: '08:00',
+          approx: true,
+        ),
+        ev(
+          EventType.sleep,
+          '2026-11-16',
+          '22:30',
+          endTime: '06:00',
+          approx: true,
+        ),
+      ]);
+      expect(w, hasLength(2));
+      expect(w[0].wakeDate, '2026-11-16');
+      expect(w[0].hours, 6.0);
+      expect(w[0].late, isTrue);
+      expect(w[1].wakeDate, '2026-11-17');
+      expect(w[1].hours, 7.5);
+      expect(w[1].late, isFalse);
+      expect(nightEndingOn(w, '2026-11-17')?.hours, 7.5);
+    });
+
+    test('commuteFor pairs overnight <04:00 arrive with prior board', () {
+      final two = commuteFor([
+        ev(EventType.busBoard, '2026-11-22', '09:20'),
+        ev(EventType.busArrive, '2026-11-22', '10:40'),
+        ev(EventType.busBoard, '2026-11-22', '23:30'),
+        ev(EventType.busArrive, '2026-11-23', '00:15'),
+      ], '2026-11-22');
+      expect(two.riding, isFalse);
+      expect(two.completedCount, 2);
+      expect(two.legs[0].minutes, 80);
+      expect(two.legs[1].minutes, 45);
+      expect(two.totalMinutes, 125);
+    });
+
+    test('summarize takes max steps, case-insensitive protein, and supplement aliases', () {
+      final s = summarize([
+        ev(EventType.steps, '2026-11-22', '10:00', qty: 6500),
+        ev(EventType.steps, '2026-11-22', '21:00', qty: 16552),
+        ev(
+          EventType.meal,
+          '2026-11-22',
+          '08:30',
+          qty: 30,
+          unit: 'G',
+          label: 'Protein',
+        ),
+        ev(
+          EventType.supplement,
+          '2026-11-22',
+          '08:00',
+          label: 'Vitamin D3 and K2',
+        ),
+        ev(
+          EventType.supplement,
+          '2026-11-22',
+          '08:05',
+          label: 'Neurokind (vitamin B)',
+        ),
+      ], '2026-11-22');
+      expect(s.steps, 16552);
+      expect(s.proteinG, 30);
+      expect(
+        s.supplementsMatched([
+          'Vitamin D3 + K2',
+          'Vitamin B-complex',
+          'Omega-3',
+        ]),
+        2,
       );
     });
   });

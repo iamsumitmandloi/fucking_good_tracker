@@ -12,9 +12,17 @@ class AppSettings extends Equatable {
     this.cigPrice = 25,
     this.teaPrice = 20,
     this.proteinTargetG = 50,
-    this.supplements = const [],
+    this.supplements = defaultSupplements,
     this.busRunSize = 10,
   });
+
+  /// Default stack from `Supplement Reference` and `Events` in the live sheet.
+  static const defaultSupplements = [
+    'Vitamin D3 + K2',
+    'Vitamin B-complex',
+    'Omega-3',
+    'Ashwagandha',
+  ];
 
   final String targetDate;
   final int cigBudget;
@@ -60,11 +68,12 @@ class AppSettings extends Equatable {
       cigPrice: cellDouble(j['cigPrice']) ?? d.cigPrice,
       teaPrice: cellDouble(j['teaPrice']) ?? d.teaPrice,
       proteinTargetG: cellInt(j['proteinTargetG']) ?? d.proteinTargetG,
-      supplements: [
-        if (j['supplements'] is List)
-          for (final s in j['supplements'] as List)
-            if (cellStr(s).isNotEmpty) cellStr(s),
-      ],
+      supplements: j['supplements'] is List
+          ? [
+              for (final s in j['supplements'] as List)
+                if (cellStr(s).isNotEmpty) cellStr(s),
+            ]
+          : d.supplements,
       busRunSize: (cellInt(j['busRunSize']) ?? d.busRunSize).clamp(1, 50),
     );
   }

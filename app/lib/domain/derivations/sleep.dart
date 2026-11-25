@@ -49,8 +49,9 @@ int? _abs(String date, String time) {
   return d.millisecondsSinceEpoch ~/ 60000 + m;
 }
 
-/// Each `sleep` (time = bedtime) pairs with the first `wake` after it,
-/// within 18 h. A sleep with no wake yet is returned with `wake == null`.
+/// Each `sleep` (time = bedtime) pairs with the first `wake` after it within
+/// 18 h, or falls back to `sleep.endTime` (used by all backfilled sheet rows).
+/// A sleep with neither is returned with `wake == null`.
 List<SleepWindow> sleepWindows(Iterable<Event> effective) {
   final timed =
       effective
@@ -68,8 +69,9 @@ List<SleepWindow> sleepWindows(Iterable<Event> effective) {
     final s = timed[i];
     if (s.type != EventType.sleep) continue;
     final start = _abs(s.date, s.time!)!;
+    final bedMin = minutesOf(s.time)!;
     // Only the very next timed event can close this window: a second
-    // bedtime first means this one never got a wake.
+    // bedtime first means this one never got a separate wake row.
     Event? wake;
     if (i + 1 < timed.length) {
       final w = timed[i + 1];
@@ -78,15 +80,39 @@ List<SleepWindow> sleepWindows(Iterable<Event> effective) {
         wake = w;
       }
     }
-    final bedMin = minutesOf(s.time)!;
+    if (wake != null) {
+      out.add(
+        SleepWindow(
+          bedDate: s.date,
+          bed: s.time!,
+          wakeDate: wake.date,
+          wake: wake.time,
+          approx: s.approx || wake.approx,
+        ),
+      );
+      continue;
+    }
+    // Live sheet `sleep` rows carry `end_time` (wake time). Per Daily Review's
+    // formula, `time <= end_time` wakes on `s.date`; `time > end_time` wakes next day.
+    final endMin = minutesOf(s.endTime);
+    if (s.endTime != null && endMin != null) {
+      out.add(
+        SleepWindow(
+          bedDate: s.date,
+          bed: s.time!,
+          wakeDate: endMin <= bedMin ? addDays(s.date, 1) : s.date,
+          wake: s.endTime,
+          approx: s.approx,
+        ),
+      );
+      continue;
+    }
     out.add(
       SleepWindow(
         bedDate: s.date,
         bed: s.time!,
-        wakeDate:
-            wake?.date ?? (bedMin >= 12 * 60 ? addDays(s.date, 1) : s.date),
-        wake: wake?.time,
-        approx: s.approx || (wake?.approx ?? false),
+        wakeDate: bedMin >= 12 * 60 ? addDays(s.date, 1) : s.date,
+        approx: s.approx,
       ),
     );
   }

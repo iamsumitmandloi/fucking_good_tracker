@@ -455,7 +455,7 @@ class _SupplementsSheet extends StatelessWidget {
             ] else
               for (final name in list)
                 CheckboxListTile(
-                  value: s.summary.supplements.contains(name),
+                  value: s.summary.hasSupplement(name),
                   onChanged: (_) =>
                       context.read<TodayCubit>().toggleSupplement(name),
                   title: Text(name, style: context.text.label),

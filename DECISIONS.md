@@ -70,3 +70,13 @@ Format: date · what · why · evidence.
 - Daily Summary (7): Date, Sleep start, Wake, Sleep hours, Weight kg, Bus boarded, Bus arrived, Commute minutes, Cigarettes, Tea cups, Water L, Food & drinks, Supplements, Exercise, Work, Spending INR, Hygiene, Steps, Energy, Sleep quality, Notes, Lunch photo, Est. lunch calories, Breakfast protein (g).
 - Timeline (170): Date, Start time, End time, Category, Activity / item, Quantity, Unit, Cost INR (if not in Spending), Reported via, Certainty, Notes.
 - Spending (58): Date, Time IST, Merchant / payee, Category, Payment method, Amount INR, Source, Reference, Notes.
+
+## 2026-11-25 (Sheet-as-source-of-truth alignment)
+
+49. **Sleep windows fall back to `sleep.end_time` when no `wake` row follows.** All 14 live `sleep` rows populate `end_time`, while 9 of 14 have no separate `wake` event. `sleepWindows()` checks for a closing `wake` event first (within 18 h), then falls back to `sleep.endTime` (`wakeDate = date` when `time < end_time`, else `date + 1`).
+50. **Daily `steps` = `MAX`, not `SUM` (`daily_stats.dart`).** Both `Today` (`G8`) and `Daily Review` (`E5`) compute daily steps with `MAXIFS`, because cumulative Google Fit / daily step entries supersede earlier estimates.
+51. **Live `SpendCategory` and read-only `EventType.activity` (`event_type.dart`).** Added `food_out`, `food_delivery`, `quick_commerce`, `drinks`, `personal_care`, `smoking`, `entertainment`, `health`, and `SpendCategory.deliveryLike` (`{delivery, food_delivery, quick_commerce}`) for `burn.dart`, plus `EventType.activity` as a read-only enum value so sheet reads retain rows like `movie-20261121-1840-2300`.
+52. **`Start Here` `Target date` month-name format (`cells.dart`).** `cellDate()` supports `d MMMM yyyy` / `d MMM yyyy` (e.g. `"30 November 2026"`) in addition to ISO and `d/M/yyyy`.
+53. **Default supplements & alias matching (`settings_repository.dart`, `daily_stats.dart`).** Seeded default `AppSettings.supplements` to `['Vitamin D3 + K2', 'Vitamin B-complex', 'Omega-3', 'Ashwagandha']`, with `supplementKey()` canonical matching for sheet label variants (e.g. `"Vitamin D3 and K2"`, `"Neurokind (vitamin B)"`) and case-insensitive protein unit `g`.
+54. **Overnight bus arrives (`commute.dart`).** Early-morning `< 04:00` `bus_arrive` events pair with an open `bus_board` on the prior day.
+55. **`ParseResult.toEvents()` + `km` exercise + bus destination notes (`parser.dart`).** Added `toEvents()` helper (separate paired `spend` row), `km` exercise unit support, and `to office`/`home` bus notes while preserving `build_events.dart` and legacy keyword categories.
