@@ -11,9 +11,11 @@ import '../../app/theme/app_theme.dart';
 import '../../app/widgets/app_icon.dart';
 import '../../app/widgets/common.dart';
 import '../../core/clock.dart';
+import '../../core/feature_flags.dart';
 import '../../core/formatters.dart';
 import '../../data/repo/settings_repository.dart';
 import 'settings_cubit.dart';
+import 'voice_model_section.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -55,6 +57,12 @@ class _SettingsView extends StatelessWidget {
                 Text('Settings', style: context.text.h2),
               ],
             ),
+            if (FeatureFlags.logging) ...[
+              const SizedBox(height: 12),
+              VoiceModelSection(
+                repository: context.read<AppDeps>().voiceModels,
+              ),
+            ],
             const SizedBox(height: 12),
             const _ConnectionSection(),
             const SizedBox(height: 12),

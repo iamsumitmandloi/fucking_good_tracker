@@ -113,13 +113,15 @@ class VoiceDraftItem extends Equatable {
 
 /// Output of parsing a voice transcript into a reviewable draft.
 class VoiceDraftResult extends Equatable {
-  const VoiceDraftResult({
+  VoiceDraftResult({
     required this.normalizedText,
-    this.items = const [],
-    this.ignoredPlans = const [],
-    this.warnings = const [],
+    List<VoiceDraftItem> items = const [],
+    List<String> ignoredPlans = const [],
+    List<String> warnings = const [],
     this.hasUnparsedFallback = false,
-  });
+  }) : items = List.unmodifiable(items),
+       ignoredPlans = List.unmodifiable(ignoredPlans),
+       warnings = List.unmodifiable(warnings);
 
   final String normalizedText;
   final List<VoiceDraftItem> items;

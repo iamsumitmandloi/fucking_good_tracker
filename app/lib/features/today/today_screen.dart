@@ -40,14 +40,19 @@ class TodayScreen extends StatelessWidget {
 }
 
 /// Opens Quick log and logs whatever it returns (with the undo line).
-Future<void> openQuickLog(BuildContext context, {String prefill = ''}) async {
+Future<void> openQuickLog(
+  BuildContext context, {
+  String prefill = '',
+  bool autoStartVoice = false,
+}) async {
   final cubit = context.read<TodayCubit>();
-  final events = await showQuickLog(
+  final outcome = await showQuickLog(
     context,
     prefill: prefill,
     idFactory: cubit.idFactory,
+    autoStartVoice: autoStartVoice,
   );
-  if (events != null && events.isNotEmpty) await cubit.logAll(events);
+  if (outcome != null) await cubit.logAll(outcome.events);
 }
 
 String _mealPrefill(DateTime nowIst) {
@@ -71,17 +76,20 @@ class _TodayView extends StatelessWidget {
       floatingActionButton: Semantics(
         label: 'Quick log',
         button: true,
-        child: FloatingActionButton(
-          key: const Key('quicklog-fab'),
-          onPressed: () => openQuickLog(context),
-          backgroundColor: c.accent,
-          foregroundColor: c.onAccent,
-          shape: const CircleBorder(),
-          child: AppIcon(
-            AppIcons.plus,
-            size: 24,
-            stroke: 2.2,
-            color: c.onAccent,
+        child: GestureDetector(
+          onLongPress: () => openQuickLog(context, autoStartVoice: true),
+          child: FloatingActionButton(
+            key: const Key('quicklog-fab'),
+            onPressed: () => openQuickLog(context),
+            backgroundColor: c.accent,
+            foregroundColor: c.onAccent,
+            shape: const CircleBorder(),
+            child: AppIcon(
+              AppIcons.plus,
+              size: 24,
+              stroke: 2.2,
+              color: c.onAccent,
+            ),
           ),
         ),
       ),

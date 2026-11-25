@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 import '../core/clock.dart';
 import '../data/local/db.dart';
@@ -11,6 +12,10 @@ import '../data/repo/legacy_repository.dart';
 import '../data/repo/settings_repository.dart';
 import '../data/repo/study_repository.dart';
 import '../data/sync/sync_service.dart';
+import '../data/voice/sherpa_stt_engine.dart';
+import '../data/voice/voice_model_store.dart';
+import '../domain/voice/voice_contracts.dart';
+import '../domain/voice/voice_draft.dart';
 import 'app_sync.dart';
 
 /// Everything the widget tree needs, built once at startup.
@@ -26,6 +31,9 @@ class AppDeps {
     required this.legacy,
     required this.settings,
     required this.appSync,
+    required this.voiceModels,
+    required this.createSttEngine,
+    required this.voiceDraftParser,
   });
 
   final Clock clock;
@@ -38,6 +46,9 @@ class AppDeps {
   final LegacyRepository legacy;
   final SettingsRepository settings;
   final AppSync appSync;
+  final VoiceModelRepository voiceModels;
+  final SttEngine Function() createSttEngine;
+  final VoiceDraftParser voiceDraftParser;
 
   static Future<AppDeps> create({
     Clock clock = const SystemClock(),
@@ -46,6 +57,9 @@ class AppDeps {
     http.Client? client,
     Connectivity? connectivity,
     bool startSync = true,
+    VoiceModelRepository? voiceModels,
+    SttEngine Function()? createSttEngine,
+    VoiceDraftParser voiceDraftParser = const VoiceDraftBuilder(),
   }) async {
     final database = db ?? AppDatabase(driftDatabase(name: 'starting_again'));
     final cfg = config ?? SecureSheetConfigStore();
@@ -79,6 +93,11 @@ class AppDeps {
       legacy: legacy,
       settings: SettingsRepository(database),
       appSync: appSync,
+      voiceModels:
+          voiceModels ??
+          VoiceModelStore(dirProvider: getApplicationDocumentsDirectory),
+      createSttEngine: createSttEngine ?? SherpaSttEngine.new,
+      voiceDraftParser: voiceDraftParser,
     );
     if (startSync) appSync.start();
     return deps;

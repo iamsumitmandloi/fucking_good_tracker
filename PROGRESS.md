@@ -5,6 +5,16 @@
 **Mode:** real `secrets.json` (owner, 17 Nov). Phase 7 makes no writes to the sheet at all; every live call in it was a GET of `tabs=Events`.
 **Plan:** `PLAN_v2.md`. Brief: `handoff_v2/AGENT_PROMPT_v2.md` (copied into the repo from the owner's Downloads).
 
+## Voice logging
+
+- **V0 complete.** Dependencies, platform permissions, mic icon, and frozen shared contracts are in place. Format and analysis passed. 323 tests passed and 14 viewer fixture tests skipped. The known V3 permission-test timeout was excluded from this phase's run.
+- **V1 complete.** The standalone Settings card and model store handle download progress, cancellation, repair, and deletion. Format and analysis passed. 329 tests passed and 14 viewer fixture tests skipped, with the V3 suite excluded.
+- **V2 complete.** The offline draft skips future plans, retains one spend for a combined payment, and applies the current time precisely for “just now.” Format and analysis passed. 333 tests passed and 14 viewer fixture tests skipped, with the V3 suite excluded.
+- **V3 complete.** The mic streams 16 kHz mono PCM to the worker. Stop drains the mic and waits for final decode. The worker frees native resources before exit. Final FVM gate: format unchanged, analysis clean, 339 tests passed, 14 viewer fixture tests skipped. A separate macOS check downloaded all 161,253,144 model bytes and transcribed synthetic PCM into drafts for two cigarettes, one tea, and one ₹50 spend.
+- **V4 implemented and automated gate passed.** With `LOGGING=true`, Settings shows the offline model card. Quick Log has a mic and live transcript, and long-pressing the Today FAB starts voice. After Stop drains the last segment, review supports transcript, amount and time edits, inclusion and removal. Confirm returns the selected events to Today's existing Drift/outbox and six-second undo path. The exact FVM format/analyze/test sequence passed with zero analyzer issues, 343 tests passed, and 14 viewer fixture tests skipped. The four V4 widget tests cover live corrections, no writes before confirmation, fake offline-to-reconnect sync exactly once, missing-model navigation, review edits, and dismissal.
+- **V4 phone check pending (owner).** Download Whisper over Wi-Fi in Settings on a logging build, turn on Airplane Mode, and dictate three Hindi/English mixed phrases. Check latency, accuracy, and the review card, then reconnect and verify sync. The V4 test run used a fake sheet server.
+- **V4 Android APK built.** `app/build/app/outputs/flutter-apk/app-release.apk` (144.2 MB), release mode with `LOGGING=true` and the project's existing debug signing key. Sheet settings are supplied in the app. APK signature, 16 KB alignment, mic permission, installation, and an offline cold launch to Today with Quick Log passed on a Pixel 7 emulator. The physical phone check is pending.
+
 ## Toolchain
 - Flutter 3.50.0 stable (plain `flutter`, no fvm), Dart 3.14.0, DevTools 2.61.0 (was 3.47.9 via fvm; see DECISIONS 10–11)
 - 2026-11-17 resume check on the new machine: `secrets.json` copied from example (dummy), `pub get` ok, Material imports migrated to `material_ui`, analyze 0 issues, 56/56 tests green. Phase 3 step 1 (analyze the 4 new files) is therefore done.

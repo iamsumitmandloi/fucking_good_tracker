@@ -7,6 +7,7 @@ import 'package:starting_again/app/deps.dart';
 import 'package:starting_again/app/theme/app_theme.dart';
 import 'package:starting_again/core/clock.dart';
 import 'package:starting_again/data/remote/sheet_config.dart';
+import 'package:starting_again/domain/voice/voice_contracts.dart';
 
 import 'fake_sheet_server.dart';
 
@@ -22,6 +23,8 @@ class AppHarness {
   static Future<AppHarness> create({
     Map<String, List<Map<String, dynamic>>>? tabs,
     Clock? clock,
+    VoiceModelRepository? voiceModels,
+    SttEngine Function()? createSttEngine,
   }) async {
     await initializeDateFormatting('en_IN');
     final server = FakeSheetServer(tabs: tabs);
@@ -33,6 +36,8 @@ class AppHarness {
       ),
       client: server.client,
       startSync: false,
+      voiceModels: voiceModels,
+      createSttEngine: createSttEngine,
     );
     return AppHarness._(server, deps);
   }
